@@ -259,3 +259,56 @@ CREATE TABLE LOSGDS.Madera (
     CONSTRAINT fk_madera_material FOREIGN KEY (madera_material) 
         REFERENCES LOSGDS.Material (id_material)
 )
+
+
+
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Provincia
+    EXECUTE LOSGDS.migrar_Localidad
+    EXECUTE LOSGDS.migrar_Direccion
+	EXECUTE LOSGDS.migrar_Proveedor
+	EXECUTE LOSGDS.migrar_Sucursal
+	EXECUTE LOSGDS.migrar_Compra
+	EXECUTE LOSGDS.migrar_Material
+	EXECUTE LOSGDS.migrar_Detalle_Compra
+	EXECUTE LOSGDS.migrar_Modelo
+	EXECUTE LOSGDS.migrar_Medida
+	EXECUTE LOSGDS.migrar_Sillon
+	EXECUTE LOSGDS.migrar_Cliente
+	EXECUTE LOSGDS.migrar_Pedido
+	EXECUTE LOSGDS.migrar_Detalle_Pedido
+	EXECUTE LOSGDS.migrar_Cancelacion_Pedido
+	EXECUTE LOSGDS.migrar_Factura
+	EXECUTE LOSGDS.migrar_Envio
+	EXECUTE LOSGDS.migrar_Detalle_Factura
+	EXECUTE LOSGDS.migrar_SillonXMaterial
+	EXECUTE LOSGDS.migrar_Tela
+	EXECUTE LOSGDS.migrar_Relleno_Sillon
+	EXECUTE LOSGDS.migrar_Madera
+COMMIT TRANSACTION
+
+
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Provincia
+DROP PROCEDURE LOSGDS.migrar_Localidad
+DROP PROCEDURE LOSGDS.migrar_Direccion
+DROP PROCEDURE LOSGDS.migrar_Proveedor
+DROP PROCEDURE LOSGDS.migrar_Sucursal
+DROP PROCEDURE LOSGDS.migrar_Compra
+DROP PROCEDURE LOSGDS.migrar_Material
+DROP PROCEDURE LOSGDS.migrar_Detalle_Compra
+DROP PROCEDURE LOSGDS.migrar_Modelo
+DROP PROCEDURE LOSGDS.migrar_Medida
+DROP PROCEDURE LOSGDS.migrar_Sillon
+DROP PROCEDURE LOSGDS.migrar_Cliente
+DROP PROCEDURE LOSGDS.migrar_Pedido
+DROP PROCEDURE LOSGDS.migrar_Detalle_Pedido
+DROP PROCEDURE LOSGDS.migrar_Cancelacion_Pedido
+DROP PROCEDURE LOSGDS.migrar_Factura
+DROP PROCEDURE LOSGDS.migrar_Envio
+DROP PROCEDURE LOSGDS.migrar_Detalle_Factura
+DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
+DROP PROCEDURE LOSGDS.migrar_Tela
+DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
+DROP PROCEDURE LOSGDS.migrar_Madera
