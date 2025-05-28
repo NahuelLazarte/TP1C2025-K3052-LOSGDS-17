@@ -261,6 +261,95 @@ CREATE TABLE LOSGDS.Madera (
 )
 
 
+CREATE PROCEDURE LOSGDS.migrar_Cancelacion_Pedido AS
+BEGIN
+    INSERT INTO LOSGDS.Cancelacion_Pedido 
+        (cancel_ped_pedido, fecha, motivo)
+    SELECT DISTINCT
+        p.id_pedido,
+        m.Pedido_Cancelacion_Fecha,
+        m.Pedido_Cancelacion_Motivo
+    FROM gd_esquema.Maestra m
+    JOIN LOSGDS.Pedido p ON p.numero_pedido = m.Pedido_Numero
+    WHERE m.Pedido_Cancelacion_Fecha IS NOT NULL;
+END;
+GO
+
+
+CREATE PROCEDURE LOSGDS.migrar_Sucursal AS
+BEGIN
+    INSERT INTO LOSGDS.Sucursal 
+        (sucursal_direccion, mail, telefono)
+    SELECT DISTINCT
+        d.id_direccion,
+        m.Sucursal_mail,
+        m.Sucursal_telefono
+    FROM gd_esquema.Maestra m
+    JOIN LOSGDS.Direccion d ON d.nombre = m.Sucursal_Direccion;
+END;
+GO
+
+
+CREATE PROCEDURE LOSGDS.migrar_Compra AS
+BEGIN
+    INSERT INTO LOSGDS.Compra 
+        (numero_compra, compra_sucursal, compra_proveedor, fecha, total)
+    SELECT DISTINCT
+        m.Compra_Numero,
+        s.id_sucursal,
+        p.id_proveedor,
+        m.Compra_Fecha,
+        CASE 
+            WHEN m.Compra_Total < 0 THEN NULL 
+            ELSE m.Compra_Total 
+        END
+    FROM gd_esquema.Maestra m
+    JOIN LOSGDS.Sucursal s ON s.mail = m.Sucursal_mail AND s.telefono = m.Sucursal_telefono
+    JOIN LOSGDS.Proveedor p ON p.cuit = m.Proveedor_Cuit;
+END;
+GO
+
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Compra AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Compra 
+        (det_compra_compra, detalle_material, precio, cantidad, subtotal)
+    SELECT DISTINCT
+        c.id_compra,
+        mat.id_material,
+        m.Detalle_Compra_Precio,
+        m.Detalle_Compra_Cantidad,
+        m.Detalle_Compra_SubTotal
+    FROM gd_esquema.Maestra m
+    JOIN LOSGDS.Compra c ON c.numero_compra = m.Compra_Numero
+    JOIN LOSGDS.Material mat ON mat.nombre = m.Material_Nombre AND mat.tipo = m.Material_Tipo;
+END;
+GO
+
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Pedido AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Pedido 
+        (det_ped_sillon, det_ped_pedido, cantidad, precio, subtotal)
+    SELECT DISTINCT
+        s.cod_sillon,
+        p.id_pedido, 
+        m.Detalle_Pedido_Cantidad,
+        m.Detalle_Pedido_Precio,
+        m.Detalle_Pedido_SubTotal
+    FROM gd_esquema.Maestra m
+    JOIN LOSGDS.Sillon s ON s.sillon_modelo = m.Sillon_Modelo_Codigo
+                         AND s.sillon_medida = (
+                             SELECT cod_medida
+                             FROM LOSGDS.Medida
+                             WHERE alto = m.Sillon_Medida_Alto
+                               AND ancho = m.Sillon_Medida_Ancho
+                               AND profundidad = m.Sillon_Medida_Profundidad
+                         )
+    JOIN LOSGDS.Pedido p ON p.numero_pedido = m.Pedido_Numero;
+END;
+GO
+
 
 ---Migracion de datos---
 BEGIN TRANSACTION
