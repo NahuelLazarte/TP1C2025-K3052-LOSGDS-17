@@ -1,0 +1,67 @@
+USE GD1C2025;
+GO
+
+-- 1. DROP CONSTRAINTS (Foreign Keys)
+
+-- Tables that reference LOSGDS.Material
+ALTER TABLE LOSGDS.SillonXMaterial DROP CONSTRAINT fk_id_material;
+ALTER TABLE LOSGDS.Tela DROP CONSTRAINT fk_tela_material;
+ALTER TABLE LOSGDS.Madera DROP CONSTRAINT fk_madera_material;
+ALTER TABLE LOSGDS.Relleno_Sillon DROP CONSTRAINT fk_relleno_material;
+ALTER TABLE LOSGDS.Detalle_Compra DROP CONSTRAINT fk_detalle_material;
+
+-- Other foreign keys
+ALTER TABLE LOSGDS.Detalle_Compra DROP CONSTRAINT fk_det_compra_compra;
+ALTER TABLE LOSGDS.Compra DROP CONSTRAINT fk_compra_sucursal;
+ALTER TABLE LOSGDS.Compra DROP CONSTRAINT fk_compra_proveedor;
+ALTER TABLE LOSGDS.Proveedor DROP CONSTRAINT fk_proveedor_direccion;
+ALTER TABLE LOSGDS.Sucursal DROP CONSTRAINT fk_sucursal_direccion;
+ALTER TABLE LOSGDS.Localidad DROP CONSTRAINT fk_localidad_provincia;
+ALTER TABLE LOSGDS.Direccion DROP CONSTRAINT fk_direccion_localidad;
+ALTER TABLE LOSGDS.Detalle_Pedido DROP CONSTRAINT fk_det_ped_sillon;
+ALTER TABLE LOSGDS.Detalle_Pedido DROP CONSTRAINT fk_det_ped_pedido;
+ALTER TABLE LOSGDS.Cancelacion_Pedido DROP CONSTRAINT fk_cancel_ped_pedido;
+ALTER TABLE LOSGDS.Cliente DROP CONSTRAINT fk_cliente_direccion;
+ALTER TABLE LOSGDS.Pedido DROP CONSTRAINT fk_pedido_sucursal;
+ALTER TABLE LOSGDS.Pedido DROP CONSTRAINT fk_pedido_cliente;
+ALTER TABLE LOSGDS.Factura DROP CONSTRAINT fk_fact_cliente;
+ALTER TABLE LOSGDS.Factura DROP CONSTRAINT fk_fact_sucursal;
+ALTER TABLE LOSGDS.Envio DROP CONSTRAINT fk_envio_factura;
+ALTER TABLE LOSGDS.Detalle_Factura DROP CONSTRAINT fk_det_fact_factura;
+ALTER TABLE LOSGDS.Detalle_Factura DROP CONSTRAINT fk_det_fact_det_pedido;
+ALTER TABLE LOSGDS.Sillon DROP CONSTRAINT fk_sillon_modelo;
+ALTER TABLE LOSGDS.Sillon DROP CONSTRAINT fk_sillon_medida;
+ALTER TABLE LOSGDS.SillonXMaterial DROP CONSTRAINT fk_cod_sillon;
+
+-- 2. DROP TABLES in dependency-safe order
+
+DROP TABLE IF EXISTS LOSGDS.SillonXMaterial;
+DROP TABLE IF EXISTS LOSGDS.Detalle_Factura;
+DROP TABLE IF EXISTS LOSGDS.Envio;
+DROP TABLE IF EXISTS LOSGDS.Factura;
+DROP TABLE IF EXISTS LOSGDS.Cancelacion_Pedido;
+DROP TABLE IF EXISTS LOSGDS.Detalle_Pedido;
+DROP TABLE IF EXISTS LOSGDS.Pedido;
+DROP TABLE IF EXISTS LOSGDS.Cliente;
+DROP TABLE IF EXISTS LOSGDS.Sillon;
+DROP TABLE IF EXISTS LOSGDS.Medida;
+DROP TABLE IF EXISTS LOSGDS.Modelo;
+DROP TABLE IF EXISTS LOSGDS.Relleno_Sillon;
+DROP TABLE IF EXISTS LOSGDS.Madera;
+DROP TABLE IF EXISTS LOSGDS.Tela;
+DROP TABLE IF EXISTS LOSGDS.Material;
+DROP TABLE IF EXISTS LOSGDS.Detalle_Compra;
+DROP TABLE IF EXISTS LOSGDS.Compra;
+DROP TABLE IF EXISTS LOSGDS.Proveedor;
+DROP TABLE IF EXISTS LOSGDS.Sucursal;
+DROP TABLE IF EXISTS LOSGDS.Direccion;
+DROP TABLE IF EXISTS LOSGDS.Localidad;
+DROP TABLE IF EXISTS LOSGDS.Provincia;
+
+-- 3. DROP PROCEDURES in LOSGDS schema
+
+DECLARE @sql NVARCHAR(MAX) = N'';
+SELECT @sql += 'DROP PROCEDURE LOSGDS.' + QUOTENAME(name) + ';' + CHAR(13)
+FROM sys.procedures
+WHERE SCHEMA_NAME(schema_id) = 'LOSGDS';
+EXEC sp_executesql @sql;
