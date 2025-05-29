@@ -242,7 +242,7 @@ CREATE TABLE LOSGDS.SillonXMaterial (
 
 -- Nahuel
 CREATE TABLE LOSGDS.Tela (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
     textura NVARCHAR(255),
     tela_material BIGINT,
@@ -252,7 +252,7 @@ CREATE TABLE LOSGDS.Tela (
 
 -- Nahuel
 CREATE TABLE LOSGDS.Relleno_Sillon (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2),
     relleno_material BIGINT,
     CONSTRAINT fk_relleno_material FOREIGN KEY (relleno_material) 
@@ -261,7 +261,7 @@ CREATE TABLE LOSGDS.Relleno_Sillon (
 
 -- Nahuel
 CREATE TABLE LOSGDS.Madera (
-    id BIGINT PRIMARY KEY,
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
     dureza NVARCHAR(255),
     madera_material BIGINT,
@@ -489,3 +489,79 @@ BEGIN TRANSACTION
 COMMIT TRANSACTION
 ---Drop de procedures---
 DROP PROCEDURE LOSGDS.migrar_Material
+
+
+
+CREATE PROCEDURE LOSGDS.migrar_Tela AS
+BEGIN
+    INSERT INTO LOSGDS.Tela (color, textura, tela_material)
+    SELECT DISTINCT 
+        m.Tela_Color,
+        m.Tela_Textura,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Material_Tipo = 'Tela';
+END;
+GO
+
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Tela
+COMMIT TRANSACTION
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Tela
+
+
+
+CREATE PROCEDURE LOSGDS.migrar_Madera AS
+BEGIN
+    INSERT INTO LOSGDS.Madera (color, dureza, madera_material)
+    SELECT DISTINCT 
+        m.Madera_Color,
+        m.Madera_Dureza,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Material_Tipo = 'Madera';
+END;
+GO
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Madera
+COMMIT TRANSACTION
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Madera
+
+
+
+
+CREATE PROCEDURE LOSGDS.migrar_Relleno_Sillon AS
+BEGIN
+    INSERT INTO LOSGDS.Relleno_Sillon (densidad, relleno_material)
+    SELECT DISTINCT 
+        m.Relleno_Densidad,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Material_Tipo = 'Relleno';
+END;
+GO
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Relleno_Sillon
+COMMIT TRANSACTION
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
