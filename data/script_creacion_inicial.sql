@@ -96,7 +96,7 @@ CREATE TABLE LOSGDS.Compra (
 
 -- Nahuel
 CREATE TABLE LOSGDS.Material (
-    id_material BIGINT PRIMARY KEY,
+    id_material  BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255),
     material_nombre NVARCHAR(255),
     precio DECIMAL(38,2),
@@ -459,7 +459,7 @@ DROP PROCEDURE LOSGDS.migrar_Medida
 
 
 
-/*
+
 -- Nahuel
 CREATE TABLE LOSGDS.Material (
     id_material BIGINT PRIMARY KEY,
@@ -470,14 +470,10 @@ CREATE TABLE LOSGDS.Material (
 )
 
 
-
-
 CREATE PROCEDURE LOSGDS.migrar_Material AS
 BEGIN
-    INSERT INTO LOSGDS.Material 
-        (id_material, descripcion, material_nombre, precio, tipo)
+    INSERT INTO LOSGDS.Material (descripcion, material_nombre, precio, tipo)
     SELECT DISTINCT
-        ,
         Material_Descripcion, 
         Material_Nombre,
         Material_Precio,
@@ -486,4 +482,10 @@ BEGIN
     WHERE Sillon_Codigo IS NOT NULL
 END;
 GO
-*/
+
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Material
+COMMIT TRANSACTION
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Material
