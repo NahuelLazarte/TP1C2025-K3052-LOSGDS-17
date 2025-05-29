@@ -134,13 +134,14 @@ CREATE TABLE LOSGDS.Medida (
 -- Nahuel
 CREATE TABLE LOSGDS.Sillon (
     cod_sillon BIGINT PRIMARY KEY,
-    sillon_modelo BIGINT,
-    sillon_medida BIGINT,
+    sillon_modelo BIGINT NOT NULL,
+    sillon_medida BIGINT NOT NULL,
     CONSTRAINT fk_sillon_modelo FOREIGN KEY (sillon_modelo) 
         REFERENCES LOSGDS.Modelo (cod_modelo),
     CONSTRAINT fk_sillon_medida FOREIGN KEY (sillon_medida) 
         REFERENCES LOSGDS.Medida (cod_medida)
-)
+);
+
 
 CREATE TABLE LOSGDS.Cliente (
     id_cliente BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -460,16 +461,6 @@ DROP PROCEDURE LOSGDS.migrar_Medida
 
 
 
--- Nahuel
-CREATE TABLE LOSGDS.Material (
-    id_material BIGINT PRIMARY KEY,
-    descripcion NVARCHAR(255),
-    material_nombre NVARCHAR(255),
-    precio DECIMAL(38,2),
-    tipo NVARCHAR(255)
-)
-
-
 CREATE PROCEDURE LOSGDS.migrar_Material AS
 BEGIN
     INSERT INTO LOSGDS.Material (descripcion, material_nombre, precio, tipo)
@@ -565,3 +556,68 @@ BEGIN TRANSACTION
 COMMIT TRANSACTION
 ---Drop de procedures---
 DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
+
+
+
+CREATE INDEX ind_medida_migracion 
+ON LOSGDS.Medida (alto, ancho, profundidad, precio);
+
+CREATE INDEX ind_modelo_migracion 
+ON LOSGDS.Modelo (cod_modelo);
+
+CREATE PROCEDURE LOSGDS.migrar_Sillon AS
+BEGIN
+    INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo,sillon_medida)
+    SELECT DISTINCT 
+        m.Sillon_Codigo,
+		modelo.cod_modelo,
+        med.cod_medida
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Medida med
+        ON med.alto = m.Sillon_Medida_Alto
+		AND med.ancho = m.Sillon_Medida_Ancho
+		AND med.profundidad = m.Sillon_Medida_Profundidad
+		AND med.precio = m.Sillon_Medida_Precio
+	INNER JOIN LOSGDS.Modelo modelo
+		ON modelo.cod_modelo = m.Sillon_Modelo_Codigo
+END;
+GO
+---Migracion de datos---
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Sillon
+COMMIT TRANSACTION
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Sillon
+
+/*
+	   [Sillon_Modelo_Codigo]
+      ,[Sillon_Modelo]
+      ,[Sillon_Modelo_Descripcion]
+      ,[Sillon_Modelo_Precio]
+      ,[Sillon_Codigo]
+      ,[Sillon_Medida_Alto]
+      ,[Sillon_Medida_Ancho]
+      ,[Sillon_Medida_Profundidad]
+      ,[Sillon_Medida_Precio]*/
+
+
+/*
+-- Nahuel
+CREATE TABLE LOSGDS.Material (
+    id_material BIGINT PRIMARY KEY,
+    descripcion NVARCHAR(255),
+    material_nombre NVARCHAR(255),
+    precio DECIMAL(38,2),
+    tipo NVARCHAR(255)
+)
+-- Nahuel
+CREATE TABLE LOSGDS.SillonXMaterial (
+    cod_sillon BIGINT,
+    id_material BIGINT,
+    PRIMARY KEY (cod_sillon, id_material),
+    CONSTRAINT fk_cod_sillon FOREIGN KEY (cod_sillon) 
+        REFERENCES LOSGDS.Sillon (cod_sillon),
+    CONSTRAINT fk_id_material FOREIGN KEY (id_material) 
+        REFERENCES LOSGDS.Material (id_material)
+)*/
+
