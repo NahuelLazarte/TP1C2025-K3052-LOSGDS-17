@@ -413,7 +413,7 @@ DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
 DROP PROCEDURE LOSGDS.migrar_Madera
 
 
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Modelo AS
 BEGIN
     INSERT INTO LOSGDS.Modelo 
@@ -427,14 +427,8 @@ BEGIN
     WHERE Sillon_Modelo_Codigo IS NOT NULL
 END;
 GO
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Modelo
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Modelo
 
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Medida AS
 BEGIN
     INSERT INTO LOSGDS.Medida 
@@ -450,21 +444,13 @@ BEGIN
 END;
 GO
 
-
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Medida
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Medida
-
 CREATE INDEX ind_medida_migracion 
 ON LOSGDS.Medida (alto, ancho, profundidad, precio);
-
+GO
 CREATE INDEX ind_modelo_migracion 
 ON LOSGDS.Modelo (cod_modelo);
-
-
+GO
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Sillon AS
 BEGIN
     INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo, sillon_medida)
@@ -477,17 +463,7 @@ BEGIN
 END;
 GO
 
--- Migración de datos
-BEGIN TRANSACTION
-    EXECUTE LOSGDS.migrar_Sillon
-COMMIT TRANSACTION
-
--- Drop de procedure
-DROP PROCEDURE LOSGDS.migrar_Sillon
-
-
-
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Material AS
 BEGIN
     INSERT INTO LOSGDS.Material (descripcion, material_nombre, precio, tipo)
@@ -501,15 +477,7 @@ BEGIN
 END;
 GO
 
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Material
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Material
-
-
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Tela AS
 BEGIN
     INSERT INTO LOSGDS.Tela (color, textura, tela_material)
@@ -527,15 +495,7 @@ BEGIN
 END;
 GO
 
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Tela
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Tela
-
-
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Madera AS
 BEGIN
     INSERT INTO LOSGDS.Madera (color, dureza, madera_material)
@@ -552,14 +512,8 @@ BEGIN
     WHERE m.Material_Tipo = 'Madera';
 END;
 GO
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Madera
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Madera
 
-
+-- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Relleno_Sillon AS
 BEGIN
     INSERT INTO LOSGDS.Relleno_Sillon (densidad, relleno_material)
@@ -575,13 +529,6 @@ BEGIN
     WHERE m.Material_Tipo = 'Relleno';
 END;
 GO
----Migracion de datos---
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Relleno_Sillon
-COMMIT TRANSACTION
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
-
 
 -- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_SillonXMaterial AS
@@ -600,21 +547,23 @@ BEGIN
 END;
 GO
 
----Migracion de datos---
 BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Modelo
+	EXECUTE LOSGDS.migrar_Medida
+	EXECUTE LOSGDS.migrar_Sillon
+	EXECUTE LOSGDS.migrar_Material
+	EXECUTE LOSGDS.migrar_Tela
+	EXECUTE LOSGDS.migrar_Madera
+	EXECUTE LOSGDS.migrar_Relleno_Sillon
 	EXECUTE LOSGDS.migrar_SillonXMaterial
 COMMIT TRANSACTION
+
 ---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Modelo
+DROP PROCEDURE LOSGDS.migrar_Medida
+DROP PROCEDURE LOSGDS.migrar_Sillon
+DROP PROCEDURE LOSGDS.migrar_Material
+DROP PROCEDURE LOSGDS.migrar_Tela
+DROP PROCEDURE LOSGDS.migrar_Madera
+DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
 DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
-
-
-/*
-	   [Sillon_Modelo_Codigo]
-      ,[Sillon_Modelo]
-      ,[Sillon_Modelo_Descripcion]
-      ,[Sillon_Modelo_Precio]
-      ,[Sillon_Codigo]
-      ,[Sillon_Medida_Alto]
-      ,[Sillon_Medida_Ancho]
-      ,[Sillon_Medida_Profundidad]
-      ,[Sillon_Medida_Precio]*/
