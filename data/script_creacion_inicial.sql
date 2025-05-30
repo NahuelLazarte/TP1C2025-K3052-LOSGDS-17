@@ -458,6 +458,33 @@ COMMIT TRANSACTION
 ---Drop de procedures---
 DROP PROCEDURE LOSGDS.migrar_Medida
 
+CREATE INDEX ind_medida_migracion 
+ON LOSGDS.Medida (alto, ancho, profundidad, precio);
+
+CREATE INDEX ind_modelo_migracion 
+ON LOSGDS.Modelo (cod_modelo);
+
+
+CREATE PROCEDURE LOSGDS.migrar_Sillon AS
+BEGIN
+    INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo, sillon_medida)
+    SELECT DISTINCT
+		m.Sillon_Codigo,
+		m.Sillon_Modelo_Codigo,
+		m.Sillon_Codigo 
+	FROM gd_esquema.Maestra m
+	WHERE m.Sillon_Codigo IS NOT NULL
+END;
+GO
+
+-- Migración de datos
+BEGIN TRANSACTION
+    EXECUTE LOSGDS.migrar_Sillon
+COMMIT TRANSACTION
+
+-- Drop de procedure
+DROP PROCEDURE LOSGDS.migrar_Sillon
+
 
 
 
@@ -533,8 +560,6 @@ COMMIT TRANSACTION
 DROP PROCEDURE LOSGDS.migrar_Madera
 
 
-
-
 CREATE PROCEDURE LOSGDS.migrar_Relleno_Sillon AS
 BEGIN
     INSERT INTO LOSGDS.Relleno_Sillon (densidad, relleno_material)
@@ -558,36 +583,30 @@ COMMIT TRANSACTION
 DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
 
 
-
-CREATE INDEX ind_medida_migracion 
-ON LOSGDS.Medida (alto, ancho, profundidad, precio);
-
-CREATE INDEX ind_modelo_migracion 
-ON LOSGDS.Modelo (cod_modelo);
-
-CREATE PROCEDURE LOSGDS.migrar_Sillon AS
+-- Nahuel
+CREATE PROCEDURE LOSGDS.migrar_SillonXMaterial AS
 BEGIN
-    INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo,sillon_medida)
-    SELECT DISTINCT 
+    INSERT INTO LOSGDS.SillonXMaterial (cod_sillon, id_material)
+    SELECT DISTINCT
         m.Sillon_Codigo,
-		modelo.cod_modelo,
-        med.cod_medida
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Medida med
-        ON med.alto = m.Sillon_Medida_Alto
-		AND med.ancho = m.Sillon_Medida_Ancho
-		AND med.profundidad = m.Sillon_Medida_Profundidad
-		AND med.precio = m.Sillon_Medida_Precio
-	INNER JOIN LOSGDS.Modelo modelo
-		ON modelo.cod_modelo = m.Sillon_Modelo_Codigo
+        mat.id_material
+    FROM gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Sillon_Codigo IS NOT NULL;
 END;
 GO
+
 ---Migracion de datos---
 BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Sillon
+	EXECUTE LOSGDS.migrar_SillonXMaterial
 COMMIT TRANSACTION
 ---Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Sillon
+DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
+
 
 /*
 	   [Sillon_Modelo_Codigo]
@@ -599,25 +618,3 @@ DROP PROCEDURE LOSGDS.migrar_Sillon
       ,[Sillon_Medida_Ancho]
       ,[Sillon_Medida_Profundidad]
       ,[Sillon_Medida_Precio]*/
-
-
-/*
--- Nahuel
-CREATE TABLE LOSGDS.Material (
-    id_material BIGINT PRIMARY KEY,
-    descripcion NVARCHAR(255),
-    material_nombre NVARCHAR(255),
-    precio DECIMAL(38,2),
-    tipo NVARCHAR(255)
-)
--- Nahuel
-CREATE TABLE LOSGDS.SillonXMaterial (
-    cod_sillon BIGINT,
-    id_material BIGINT,
-    PRIMARY KEY (cod_sillon, id_material),
-    CONSTRAINT fk_cod_sillon FOREIGN KEY (cod_sillon) 
-        REFERENCES LOSGDS.Sillon (cod_sillon),
-    CONSTRAINT fk_id_material FOREIGN KEY (id_material) 
-        REFERENCES LOSGDS.Material (id_material)
-)*/
-
