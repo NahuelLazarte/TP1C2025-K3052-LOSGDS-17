@@ -553,7 +553,7 @@ BEGIN TRANSACTION
 	EXECUTE LOSGDS.migrar_Madera
 	EXECUTE LOSGDS.migrar_Relleno_Sillon
 	EXECUTE LOSGDS.migrar_SillonXMaterial
-	EXECUTE LOSGDS.Detalle_Factura
+	EXECUTE LOSGDS.migrar_Detalle_Factura
 COMMIT TRANSACTION
 
 ---Drop de procedures---
@@ -565,7 +565,7 @@ DROP PROCEDURE LOSGDS.migrar_Tela
 DROP PROCEDURE LOSGDS.migrar_Madera
 DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
 DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
-DROP PROCEDURE LOSGDS.Detalle_Factura
+DROP PROCEDURE LOSGDS.migrar_Detalle_Factura
 
 
 
