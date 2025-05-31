@@ -14,32 +14,23 @@ IF OBJECT_ID('LOSGDS.Detalle_Factura', 'U') IS NOT NULL DROP TABLE LOSGDS.Detall
 IF OBJECT_ID('LOSGDS.Envio', 'U') IS NOT NULL DROP TABLE LOSGDS.Envio;
 IF OBJECT_ID('LOSGDS.Cancelacion_Pedido', 'U') IS NOT NULL DROP TABLE LOSGDS.Cancelacion_Pedido;
 IF OBJECT_ID('LOSGDS.Detalle_Pedido', 'U') IS NOT NULL DROP TABLE LOSGDS.Detalle_Pedido;
-
 IF OBJECT_ID('LOSGDS.Factura', 'U') IS NOT NULL DROP TABLE LOSGDS.Factura;
 IF OBJECT_ID('LOSGDS.Pedido', 'U') IS NOT NULL DROP TABLE LOSGDS.Pedido;
-
 IF OBJECT_ID('LOSGDS.Detalle_Compra', 'U') IS NOT NULL DROP TABLE LOSGDS.Detalle_Compra;
 IF OBJECT_ID('LOSGDS.Compra', 'U') IS NOT NULL DROP TABLE LOSGDS.Compra;
-
 IF OBJECT_ID('LOSGDS.Cliente', 'U') IS NOT NULL DROP TABLE LOSGDS.Cliente;
 IF OBJECT_ID('LOSGDS.Sillon', 'U') IS NOT NULL DROP TABLE LOSGDS.Sillon;
-
 IF OBJECT_ID('LOSGDS.Tela', 'U') IS NOT NULL DROP TABLE LOSGDS.Tela;
 IF OBJECT_ID('LOSGDS.Relleno_Sillon', 'U') IS NOT NULL DROP TABLE LOSGDS.Relleno_Sillon;
 IF OBJECT_ID('LOSGDS.Madera', 'U') IS NOT NULL DROP TABLE LOSGDS.Madera;
 IF OBJECT_ID('LOSGDS.Material', 'U') IS NOT NULL DROP TABLE LOSGDS.Material;
-
 IF OBJECT_ID('LOSGDS.Sucursal', 'U') IS NOT NULL DROP TABLE LOSGDS.Sucursal;
 IF OBJECT_ID('LOSGDS.Proveedor', 'U') IS NOT NULL DROP TABLE LOSGDS.Proveedor;
-
 IF OBJECT_ID('LOSGDS.Direccion', 'U') IS NOT NULL DROP TABLE LOSGDS.Direccion;
 IF OBJECT_ID('LOSGDS.Localidad', 'U') IS NOT NULL DROP TABLE LOSGDS.Localidad;
-
 IF OBJECT_ID('LOSGDS.Medida', 'U') IS NOT NULL DROP TABLE LOSGDS.Medida;
 IF OBJECT_ID('LOSGDS.Modelo', 'U') IS NOT NULL DROP TABLE LOSGDS.Modelo;
-
 IF OBJECT_ID('LOSGDS.Provincia', 'U') IS NOT NULL DROP TABLE LOSGDS.Provincia;
-
 
 
 CREATE TABLE LOSGDS.Provincia (
@@ -77,7 +68,7 @@ CREATE TABLE LOSGDS.Proveedor (
         REFERENCES LOSGDS.Direccion(id_direccion)
 )
 GO
--- Matt
+
 CREATE TABLE LOSGDS.Sucursal (
     id_sucursal BIGINT IDENTITY(1,1) PRIMARY KEY,
     nro_sucursal BIGINT,
@@ -88,7 +79,7 @@ CREATE TABLE LOSGDS.Sucursal (
         REFERENCES LOSGDS.Direccion(id_direccion)
 )
 GO
--- Matt
+
 CREATE TABLE LOSGDS.Compra (
     id_compra BIGINT IDENTITY(1,1) PRIMARY KEY,
     numero_compra DECIMAL(18,0) NOT NULL,
@@ -100,7 +91,7 @@ CREATE TABLE LOSGDS.Compra (
     CONSTRAINT fk_compra_proveedor FOREIGN KEY (compra_proveedor) REFERENCES LOSGDS.Proveedor(id_proveedor)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Material (
     id_material  BIGINT IDENTITY(1,1) PRIMARY KEY,
     descripcion NVARCHAR(255),
@@ -109,7 +100,7 @@ CREATE TABLE LOSGDS.Material (
     tipo NVARCHAR(255)
 )
 GO
--- Matt
+
 CREATE TABLE LOSGDS.Detalle_Compra (
     id_det_compra BIGINT IDENTITY(1,1) PRIMARY KEY,
     det_compra_compra BIGINT NOT NULL,
@@ -121,7 +112,7 @@ CREATE TABLE LOSGDS.Detalle_Compra (
     CONSTRAINT fk_detalle_material FOREIGN KEY (detalle_material) REFERENCES LOSGDS.Material(id_material)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Modelo (
 	cod_modelo BIGINT PRIMARY KEY,
     modelo NVARCHAR(255),
@@ -129,7 +120,7 @@ CREATE TABLE LOSGDS.Modelo (
     precio DECIMAL(18,2)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Medida (
     cod_medida BIGINT IDENTITY(1,1) PRIMARY KEY,
     alto DECIMAL(18,2),
@@ -138,7 +129,7 @@ CREATE TABLE LOSGDS.Medida (
     precio DECIMAL(18,2)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Sillon (
     cod_sillon BIGINT PRIMARY KEY,
     sillon_modelo BIGINT NOT NULL,
@@ -178,7 +169,7 @@ CREATE TABLE LOSGDS.Pedido (
         REFERENCES LOSGDS.Cliente(id_cliente)
 )
 GO
--- Matt
+
 CREATE TABLE LOSGDS.Detalle_Pedido (
     id_det_pedido BIGINT IDENTITY(1,1) PRIMARY KEY,
     det_ped_sillon BIGINT NOT NULL,
@@ -241,7 +232,7 @@ CREATE TABLE LOSGDS.Detalle_Factura (
         REFERENCES LOSGDS.Detalle_Pedido(id_det_pedido)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.SillonXMaterial (
     cod_sillon BIGINT,
     id_material BIGINT,
@@ -252,7 +243,7 @@ CREATE TABLE LOSGDS.SillonXMaterial (
         REFERENCES LOSGDS.Material (id_material)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Tela (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
@@ -262,7 +253,7 @@ CREATE TABLE LOSGDS.Tela (
         REFERENCES LOSGDS.Material (id_material)
 )
 GO
--- Nahuel
+
 CREATE TABLE LOSGDS.Relleno_Sillon (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2),
@@ -272,7 +263,7 @@ CREATE TABLE LOSGDS.Relleno_Sillon (
 )
 GO
 
--- Nahuel
+
 CREATE TABLE LOSGDS.Madera (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
@@ -282,337 +273,7 @@ CREATE TABLE LOSGDS.Madera (
         REFERENCES LOSGDS.Material (id_material)
 )
 GO
-	
--- Matt
-CREATE PROCEDURE LOSGDS.migrar_Cancelacion_Pedido AS -- Bien | 1925
-BEGIN
-    INSERT INTO LOSGDS.Cancelacion_Pedido 
-        (cancel_ped_pedido, fecha, motivo)
-    SELECT DISTINCT
-        p.id_pedido,
-        m.Pedido_Cancelacion_Fecha,
-        m.Pedido_Cancelacion_Motivo
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
-    WHERE m.Pedido_Cancelacion_Fecha IS NOT NULL AND m.Pedido_Cancelacion_Motivo IS NOT NULL;
-END;
-GO
 
--- Matt
-CREATE PROCEDURE LOSGDS.migrar_Sucursal AS
-BEGIN
-    INSERT INTO LOSGDS.Sucursal 
-        (nro_sucursal, sucursal_direccion, mail, telefono)
-    SELECT DISTINCT
-        m.Sucursal_NroSucursal,
-        d.id_direccion,
-        m.Sucursal_mail,
-        m.Sucursal_telefono
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Direccion d ON d.nombre = m.Sucursal_Direccion
-	WHERE d.id_direccion IS NOT NULL AND m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL;
-END;
-GO
-
--- Matt
-CREATE PROCEDURE LOSGDS.migrar_Compra AS
-BEGIN
-    INSERT INTO LOSGDS.Compra 
-        (numero_compra, compra_sucursal, compra_proveedor, fecha, total)
-    SELECT DISTINCT
-        m.Compra_Numero,
-        s.id_sucursal,
-        p.id_proveedor,
-        m.Compra_Fecha,
-        CASE 
-            WHEN m.Compra_Total < 0 THEN NULL 
-            ELSE m.Compra_Total 
-        END
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Sucursal s ON s.mail = m.Sucursal_mail AND s.telefono = m.Sucursal_telefono
-    LEFT JOIN LOSGDS.Proveedor p ON p.cuit = m.Proveedor_Cuit
-	WHERE s.id_sucursal IS NOT NULL AND p.id_proveedor IS NOT NULL;
-END;
-GO
-
--- Matt
-CREATE PROCEDURE LOSGDS.migrar_Detalle_Compra AS
-BEGIN
-    INSERT INTO LOSGDS.Detalle_Compra 
-        (det_compra_compra, detalle_material, precio, cantidad, subtotal)
-    SELECT DISTINCT
-        c.id_compra,
-        mat.id_material,
-        m.Detalle_Compra_Precio,
-        m.Detalle_Compra_Cantidad,
-        m.Detalle_Compra_SubTotal
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Compra c ON c.numero_compra = m.Compra_Numero
-    LEFT JOIN LOSGDS.Material mat ON mat.material_nombre = m.Material_Nombre AND mat.tipo = m.Material_Tipo
-	WHERE c.id_compra IS NOT NULL AND mat.id_material IS NOT NULL;
-END;
-GO
-
--- Matt
-CREATE PROCEDURE LOSGDS.migrar_Detalle_Pedido AS
-BEGIN
-    INSERT INTO LOSGDS.Detalle_Pedido 
-        (det_ped_sillon, det_ped_pedido, cantidad, precio, subtotal)
-    SELECT DISTINCT
-        s.cod_sillon,
-        p.id_pedido, 
-        m.Detalle_Pedido_Cantidad,
-        m.Detalle_Pedido_Precio,
-        m.Detalle_Pedido_SubTotal
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Sillon s ON s.sillon_modelo = m.Sillon_Modelo_Codigo
-    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
-	WHERE s.cod_sillon IS NOT NULL AND p.id_pedido IS NOT NULL 
-		AND m.Pedido_Numero IS NOT NULL AND m.Sillon_Modelo_Codigo IS NOT NULL
-END;
-GO
- 
-CREATE PROCEDURE LOSGDS.MigrarFactura AS -- Bien | 17408
-BEGIN
-    INSERT INTO LOSGDS.Factura
-		(fact_cliente,fact_sucursal, fact_numero, fecha, total)
-    SELECT DISTINCT
-        c.id_cliente,
-        s.id_sucursal,
-        m.Factura_Numero,
-        m.Factura_Fecha,
-        m.Factura_Total
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.nro_sucursal
-    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
-    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
-    WHERE Cliente_Dni IS NOT NULL AND m.Sucursal_NroSucursal IS NOT NULL
-    AND Cliente_Apellido IS NOT NULL
-    AND Cliente_Nombre IS NOT NULL 
-	AND m.Factura_Numero IS NOT NULL
-    AND Cliente_FechaNacimiento IS NOT NULL 
-END
-GO
-
-
-CREATE PROCEDURE LOSGDS.MigrarCliente AS -- Bien | 20509
-BEGIN
-    INSERT INTO LOSGDS.Cliente
-    SELECT DISTINCT
-        d.id_direccion,
-        m.Cliente_Dni,
-        m.Cliente_Nombre,
-        m.Cliente_Apellido,
-        m.Cliente_FechaNacimiento,
-        m.Cliente_Mail,
-        m.Cliente_Telefono
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre 
-    LEFT JOIN LOSGDS.Localidad l ON Cliente_Localidad  = l.nombre AND l.localidad_provincia = p.id_provincia
-    LEFT JOIN LOSGDS.Direccion d ON Cliente_Direccion = d.nombre--ESTE ES EL PROBLEMA QUE COMPARA BIGITN CON ID DIRECCION
-    WHERE m.Cliente_Provincia IS NOT NULL
-    AND m.Cliente_Localidad IS NOT NULL
-    AND Cliente_Direccion IS NOT NULL 
-    ORDER BY id_direccion 
-END
-GO
-
-
-CREATE PROCEDURE LOSGDS.migrar_Pedido AS
-BEGIN
-    INSERT INTO LOSGDS.Pedido 
-        (pedido_sucursal, pedido_cliente, nro_pedido, fecha, total, estado)
-    SELECT DISTINCT
-        s.id_sucursal,
-        c.id_cliente,
-        m.Pedido_Numero,
-        m.Pedido_Fecha,
-        m.Pedido_Total,
-        m.Pedido_Estado
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Sucursal s ON s.nro_sucursal = m.Sucursal_NroSucursal
-    LEFT JOIN LOSGDS.Cliente c 
-        ON c.dni = m.Cliente_Dni AND c.mail = m.Cliente_Mail
-    WHERE s.nro_sucursal IS NOT NULL AND c.id_cliente IS NOT NULL;
-END;
-GO
-
-CREATE PROCEDURE LOSGDS.MigrarEnvio
-AS
-BEGIN
-    INSERT INTO LOSGDS.Envio
-    SELECT
-        m.Envio_Numero,
-        f.id_factura,
-        m.Envio_Fecha_Programada,
-        m.Envio_Fecha,
-        m.Envio_ImporteTraslado,
-        m.Envio_ImporteSubida,
-        m.Envio_Total
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Factura f ON m.Factura_Numero = f.fact_numero
-    WHERE m.Envio_Numero IS NOT NULL AND m.Factura_Numero IS NOT NULL
-END
-GO
-
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Modelo AS
-BEGIN
-    INSERT INTO LOSGDS.Modelo 
-        (cod_modelo, modelo, descripcion, precio)
-    SELECT DISTINCT
-        Sillon_Modelo_Codigo,
-        Sillon_Modelo, 
-        Sillon_Modelo_Descripcion,
-        Sillon_Modelo_Precio
-    FROM gd_esquema.Maestra
-    WHERE Sillon_Modelo_Codigo IS NOT NULL
-END;
-GO
-
--- Procedimiento para migrar medidas (no necesita cambios si ya est� as�)
-CREATE PROCEDURE LOSGDS.migrar_Medida AS
-BEGIN
-    INSERT INTO LOSGDS.Medida 
-        (alto, ancho, profundidad, precio)
-    SELECT DISTINCT
-        Sillon_Medida_Alto, 
-        Sillon_Medida_Ancho,
-        Sillon_Medida_Profundidad,
-        Sillon_Medida_Precio
-    FROM gd_esquema.Maestra
-    WHERE Sillon_Codigo IS NOT NULL
-END;
-GO
-
--- Procedimiento para migrar sillones (modificado para usar JOIN con Medida)
-CREATE PROCEDURE LOSGDS.migrar_Sillon AS
-BEGIN
-    INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo, sillon_medida)
-    SELECT DISTINCT
-        m.Sillon_Codigo,
-        m.Sillon_Modelo_Codigo,
-        med.cod_medida
-    FROM gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Medida med
-        ON med.alto = m.Sillon_Medida_Alto
-        AND med.ancho = m.Sillon_Medida_Ancho
-        AND med.profundidad = m.Sillon_Medida_Profundidad
-        AND med.precio = m.Sillon_Medida_Precio
-    WHERE m.Sillon_Codigo IS NOT NULL
-END;
-GO
-
-
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Material AS
-BEGIN
-    INSERT INTO LOSGDS.Material (descripcion, material_nombre, precio, tipo)
-    SELECT DISTINCT
-        Material_Descripcion, 
-        Material_Nombre,
-        Material_Precio,
-        Material_Tipo
-    FROM gd_esquema.Maestra
-    WHERE Sillon_Codigo IS NOT NULL
-END;
-GO
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Tela AS
-BEGIN
-    INSERT INTO LOSGDS.Tela (color, textura, tela_material)
-    SELECT DISTINCT 
-        m.Tela_Color,
-        m.Tela_Textura,
-        mat.id_material
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Material mat
-        ON mat.tipo = m.Material_Tipo
-        AND mat.material_nombre = m.Material_Nombre
-        AND mat.descripcion = m.Material_Descripcion
-        AND mat.precio = m.Material_Precio
-    WHERE m.Material_Tipo = 'Tela';
-END;
-GO
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Madera AS
-BEGIN
-    INSERT INTO LOSGDS.Madera (color, dureza, madera_material)
-    SELECT DISTINCT 
-        m.Madera_Color,
-        m.Madera_Dureza,
-        mat.id_material
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Material mat
-        ON mat.tipo = m.Material_Tipo
-        AND mat.material_nombre = m.Material_Nombre
-        AND mat.descripcion = m.Material_Descripcion
-        AND mat.precio = m.Material_Precio
-    WHERE m.Material_Tipo = 'Madera';
-END;
-GO
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Relleno_Sillon AS
-BEGIN
-    INSERT INTO LOSGDS.Relleno_Sillon (densidad, relleno_material)
-    SELECT DISTINCT 
-        m.Relleno_Densidad,
-        mat.id_material
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Material mat
-        ON mat.tipo = m.Material_Tipo
-        AND mat.material_nombre = m.Material_Nombre
-        AND mat.descripcion = m.Material_Descripcion
-        AND mat.precio = m.Material_Precio
-    WHERE m.Material_Tipo = 'Relleno';
-END;
-GO
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_SillonXMaterial AS
-BEGIN
-    INSERT INTO LOSGDS.SillonXMaterial (cod_sillon, id_material)
-    SELECT DISTINCT
-        s.cod_sillon,
-        mat.id_material
-    FROM gd_esquema.Maestra m
-	INNER JOIN LOSGDS.Sillon s
-		ON s.cod_sillon = m.Sillon_Codigo
-    INNER JOIN LOSGDS.Material mat
-        ON mat.tipo = m.Material_Tipo
-        AND mat.material_nombre = m.Material_Nombre
-        AND mat.descripcion = m.Material_Descripcion
-        AND mat.precio = m.Material_Precio
-    WHERE m.Sillon_Codigo IS NOT NULL;
-END;
-GO
-
-
--- Nahuel
-CREATE PROCEDURE LOSGDS.migrar_Detalle_Factura AS
-BEGIN
-    INSERT INTO LOSGDS.Detalle_Factura (det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
-    SELECT DISTINCT                
-        f.id_factura,                      
-        dp.id_det_pedido,                 
-        m.Detalle_Pedido_Precio,           
-        m.Detalle_Pedido_Cantidad,         
-        m.Detalle_Pedido_SubTotal          
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Detalle_Pedido dp
-        ON dp.cantidad = m.Detalle_Pedido_Cantidad
-        AND dp.precio = m.Detalle_Pedido_Precio
-        AND dp.subtotal = m.Detalle_Pedido_SubTotal
-    INNER JOIN LOSGDS.Factura f
-        ON f.fact_numero = m.Factura_Numero
-        AND f.fecha = m.Factura_Fecha
-END;
-GO
 
 
 CREATE PROCEDURE LOSGDS.MigrarProvincias AS
@@ -637,26 +298,28 @@ BEGIN
 	p.id_provincia AS Provincia,
 	Cliente_Localidad AS Localidad 
 	FROM gd_esquema.Maestra 
-	JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre 
-	WHERE NOT (Cliente_Provincia IS NULL AND Cliente_Localidad IS NULL)
+	left JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre 
+	left join LOSGDS.Localidad l ON Cliente_Localidad = l.nombre
+	WHERE Cliente_Provincia IS NOT NULL AND Cliente_Localidad IS NOT NULL
 	UNION
 	SELECT DISTINCT 
 	p.id_provincia AS Provincia,
 	Proveedor_Localidad AS Localidad 
 	FROM gd_esquema.Maestra 
-	JOIN LOSGDS.Provincia p ON Proveedor_Provincia = p.nombre
-	WHERE NOT (Proveedor_Localidad IS NULL AND Proveedor_Provincia IS NULL)
+	left JOIN LOSGDS.Provincia p ON Proveedor_Provincia = p.nombre
+	left join LOSGDS.Localidad l ON Proveedor_Localidad = l.nombre
+	WHERE Proveedor_Localidad IS NOT NULL AND Proveedor_Provincia IS NOT NULL
 	UNION
 	SELECT DISTINCT 
 	p.id_provincia AS Provincia,
 	Sucursal_Localidad AS Localidad	
 	FROM gd_esquema.Maestra 
-	JOIN LOSGDS.Provincia p ON Sucursal_Provincia = p.nombre  
-	WHERE NOT(Sucursal_Localidad IS NULL AND Sucursal_Provincia IS NULL)
+	left JOIN LOSGDS.Provincia p ON Sucursal_Provincia = p.nombre 
+	left join LOSGDS.Localidad l ON Sucursal_Localidad = l.nombre
+	WHERE Sucursal_Localidad IS NOT NULL AND Sucursal_Provincia IS NOT NULL
 	ORDER BY Provincia,Localidad
 END
 GO
-
 
 CREATE PROCEDURE LOSGDS.MigrarDirecciones AS
 BEGIN
@@ -665,8 +328,8 @@ BEGIN
 			l.id_localidad AS Localidad,
 			Sucursal_Direccion AS Direccion
 			FROM gd_esquema.Maestra
-			JOIN LOSGDS.Provincia p ON Sucursal_Provincia = p.nombre
-			JOIN LOSGDS.Localidad l ON Sucursal_Localidad = l.nombre and l.localidad_provincia = p.id_provincia
+			left JOIN LOSGDS.Provincia p ON Sucursal_Provincia = p.nombre
+			left JOIN LOSGDS.Localidad l ON Sucursal_Localidad = l.nombre and l.localidad_provincia = p.id_provincia
 			WHERE 
 			Sucursal_Direccion IS NOT NULL 
 			AND Sucursal_Provincia IS NOT NULL 
@@ -676,8 +339,8 @@ BEGIN
 			l.id_localidad AS Localidad,
 			Cliente_Direccion AS Direccion
 			FROM [gd_esquema].[Maestra]
-			JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre
-			JOIN LOSGDS.Localidad l ON Cliente_Localidad = l.nombre and l.localidad_provincia = p.id_provincia
+			left JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre
+			left JOIN LOSGDS.Localidad l ON Cliente_Localidad = l.nombre and l.localidad_provincia = p.id_provincia
 			WHERE Cliente_Direccion IS NOT NULL 
 			AND Sucursal_Provincia IS NOT NULL 
 			AND Sucursal_Localidad IS NOT NULL
@@ -686,13 +349,12 @@ BEGIN
 			l.id_localidad AS Localidad,
 			Proveedor_Direccion AS Direccion
 			FROM [gd_esquema].[Maestra]
-			JOIN LOSGDS.Provincia p ON p.nombre = Proveedor_Provincia
-			JOIN LOSGDS.Localidad l ON l.nombre = Proveedor_Localidad and l.localidad_provincia = p.id_provincia
+			left JOIN LOSGDS.Provincia p ON p.nombre = Proveedor_Provincia
+			left JOIN LOSGDS.Localidad l ON l.nombre = Proveedor_Localidad and l.localidad_provincia = p.id_provincia
 			WHERE Proveedor_Direccion IS NOT NULL 
 			AND Sucursal_Provincia IS NOT NULL 
 			AND Sucursal_Localidad IS NOT NULL
 			ORDER BY Localidad,Direccion
-
 END
 GO 
 
@@ -706,9 +368,9 @@ BEGIN
 		m.Proveedor_Telefono,
 		m.Proveedor_Mail
 	FROM gd_esquema.Maestra m
-	JOIN LOSGDS.Provincia p ON Proveedor_Provincia = p.nombre 
-	JOIN LOSGDS.Localidad l ON Proveedor_Localidad = l.nombre AND l.localidad_provincia = p.id_provincia
-	JOIN LOSGDS.Direccion d ON Proveedor_Direccion = d.nombre
+	LEFT JOIN LOSGDS.Provincia p ON Proveedor_Provincia = p.nombre 
+	LEFT JOIN LOSGDS.Localidad l ON Proveedor_Localidad = l.nombre AND l.localidad_provincia = p.id_provincia
+	LEFT JOIN LOSGDS.Direccion d ON Proveedor_Direccion = d.nombre
 	WHERE m.Proveedor_RazonSocial IS NOT NULL
 	AND m.Proveedor_Cuit IS NOT NULL
 	AND NOT(Proveedor_Provincia IS NULL 
@@ -718,9 +380,334 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE LOSGDS.migrar_Compra AS
+BEGIN
+    INSERT INTO LOSGDS.Compra 
+        (numero_compra, compra_sucursal, compra_proveedor, fecha, total)
+    SELECT DISTINCT
+        m.Compra_Numero,
+        s.id_sucursal,
+        p.id_proveedor,
+        m.Compra_Fecha,
+        CASE 
+            WHEN m.Compra_Total < 0 THEN NULL 
+            ELSE m.Compra_Total 
+        END AS Total
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Sucursal s ON s.mail = m.Sucursal_mail
+	AND s.telefono = m.Sucursal_telefono and s.nro_sucursal = Sucursal_NroSucursal
+    LEFT JOIN LOSGDS.Proveedor p ON p.cuit = m.Proveedor_Cuit 
+	AND Proveedor_RazonSocial = p.razon_social
+	WHERE m.Sucursal_mail IS NOT NULL AND m.Sucursal_telefono IS NOT NULL
+	AND Sucursal_NroSucursal IS NOT NULL AND M.Compra_Fecha IS NOT NULL 
+	AND m.Compra_Total IS NOT NULL;
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Compra AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Compra 
+        (det_compra_compra, detalle_material, precio, cantidad, subtotal)
+    SELECT DISTINCT
+        c.id_compra,
+        mat.id_material,
+        m.Detalle_Compra_Precio,
+        m.Detalle_Compra_Cantidad,
+        m.Detalle_Compra_SubTotal
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Compra c ON c.numero_compra = m.Compra_Numero
+	AND m.Compra_Fecha = c.fecha AND m.Compra_Total = c.total
+    LEFT JOIN LOSGDS.Material mat ON m.Material_Descripcion = mat.descripcion
+	AND mat.material_nombre = m.Material_Nombre 
+	AND mat.tipo = m.Material_Tipo
+	WHERE m.Compra_Numero IS NOT NULL AND m.Material_Nombre IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Material AS
+BEGIN
+    INSERT INTO LOSGDS.Material (descripcion, material_nombre, precio, tipo)
+    SELECT DISTINCT
+        Material_Descripcion, 
+        Material_Nombre,
+        Material_Precio,
+        Material_Tipo
+    FROM gd_esquema.Maestra
+    WHERE Material_Descripcion IS NOT NULL AND
+	Material_Nombre IS NOT NULL AND
+	Material_Precio IS NOT NULL AND
+	Material_Tipo IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Tela AS
+BEGIN
+    INSERT INTO LOSGDS.Tela (color, textura, tela_material)
+    SELECT DISTINCT 
+        m.Tela_Color,
+        m.Tela_Textura,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Material_Tipo = 'Tela';
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Madera AS
+BEGIN
+    INSERT INTO LOSGDS.Madera (color, dureza, madera_material)
+    SELECT DISTINCT 
+        m.Madera_Color,
+        m.Madera_Dureza,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Material mat ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Relleno_Sillon AS
+BEGIN
+    INSERT INTO LOSGDS.Relleno_Sillon (densidad, relleno_material)
+    SELECT DISTINCT 
+        m.Relleno_Densidad,
+        mat.id_material
+    FROM GD1C2025.gd_esquema.Maestra m
+    left JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Factura AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Factura (det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
+    SELECT DISTINCT                
+        f.id_factura,                      
+        dp.id_det_pedido,                 
+        m.Detalle_Pedido_Precio,           
+        m.Detalle_Pedido_Cantidad,         
+        m.Detalle_Pedido_SubTotal          
+    FROM GD1C2025.gd_esquema.Maestra m
+	JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
+    JOIN LOSGDS.Detalle_Pedido dp ON p.id_pedido = dp.id_det_pedido	
+    JOIN LOSGDS.Factura f
+        ON f.fact_numero = m.Factura_Numero
+        
+	WHERE Detalle_Factura_Precio IS NOT NULL AND
+	Detalle_Factura_Cantidad IS NOT NULL AND
+	Detalle_Factura_SubTotal IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Medida AS
+BEGIN
+    INSERT INTO LOSGDS.Medida 
+        (alto, ancho, profundidad, precio)
+    SELECT DISTINCT
+        Sillon_Medida_Alto, 
+        Sillon_Medida_Ancho,
+        Sillon_Medida_Profundidad,
+        Sillon_Medida_Precio
+    FROM gd_esquema.Maestra
+    WHERE Sillon_Codigo IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Modelo AS
+BEGIN
+    INSERT INTO LOSGDS.Modelo 
+        (cod_modelo, modelo, descripcion, precio)
+    SELECT DISTINCT
+        Sillon_Modelo_Codigo,
+        Sillon_Modelo, 
+        Sillon_Modelo_Descripcion,
+        Sillon_Modelo_Precio
+    FROM gd_esquema.Maestra
+    WHERE Sillon_Modelo_Codigo IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.MigrarEnvio
+AS
+BEGIN
+    INSERT INTO LOSGDS.Envio
+    SELECT
+        m.Envio_Numero,
+        f.id_factura,
+        m.Envio_Fecha_Programada,
+        m.Envio_Fecha,
+        m.Envio_ImporteTraslado,
+        m.Envio_ImporteSubida,
+        m.Envio_Total
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Factura f ON m.Factura_Numero = f.fact_numero
+    WHERE m.Envio_Numero IS NOT NULL AND m.Factura_Numero IS NOT NULL
+END
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Pedido AS
+BEGIN
+    INSERT INTO LOSGDS.Pedido 
+        (pedido_sucursal, pedido_cliente, nro_pedido, fecha, total, estado)
+    SELECT DISTINCT
+        s.id_sucursal,
+        c.id_cliente,
+        m.Pedido_Numero,
+        m.Pedido_Fecha,
+        m.Pedido_Total,
+        m.Pedido_Estado
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Sucursal s ON s.nro_sucursal = m.Sucursal_NroSucursal
+	AND s.mail = m.Sucursal_mail
+    LEFT JOIN LOSGDS.Cliente c ON  c.nombre = m.Cliente_Nombre and c.dni = m.Cliente_Dni
+    WHERE m.Sucursal_NroSucursal IS NOT NULL 
+	AND c.id_cliente is not null and
+	m.Pedido_Numero IS NOT NULL AND
+        m.Pedido_Total IS NOT NULL AND
+        m.Pedido_Estado IS NOT NULL 
+	END
+GO
+
+CREATE PROCEDURE LOSGDS.MigrarCliente AS
+BEGIN
+    INSERT INTO LOSGDS.Cliente
+    SELECT DISTINCT
+        d.id_direccion,
+        m.Cliente_Dni,
+        m.Cliente_Nombre,
+        m.Cliente_Apellido,
+        m.Cliente_FechaNacimiento,
+        m.Cliente_Mail,
+        m.Cliente_Telefono
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Provincia p ON Cliente_Provincia = p.nombre 
+    LEFT JOIN LOSGDS.Localidad l ON Cliente_Localidad  = l.nombre AND l.localidad_provincia = p.id_provincia
+    LEFT JOIN LOSGDS.Direccion d ON Cliente_Direccion = d.nombre--ESTE ES EL PROBLEMA QUE COMPARA BIGITN CON ID DIRECCION
+    WHERE m.Cliente_Provincia IS NOT NULL
+    AND m.Cliente_Localidad IS NOT NULL
+    AND Cliente_Direccion IS NOT NULL 
+    ORDER BY id_direccion 
+END
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Sillon AS
+BEGIN
+    INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo, sillon_medida)
+    SELECT DISTINCT
+        m.Sillon_Codigo,
+        m.Sillon_Modelo_Codigo,
+        med.cod_medida
+    FROM gd_esquema.Maestra m
+    left JOIN LOSGDS.Medida med
+        ON med.alto = m.Sillon_Medida_Alto
+        AND med.ancho = m.Sillon_Medida_Ancho
+        AND med.profundidad = m.Sillon_Medida_Profundidad
+        AND med.precio = m.Sillon_Medida_Precio
+    WHERE m.Sillon_Codigo IS NOT NULL
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_SillonXMaterial AS
+BEGIN
+    INSERT INTO LOSGDS.SillonXMaterial (cod_sillon, id_material)
+    SELECT DISTINCT
+        s.cod_sillon,
+        mat.id_material
+    FROM gd_esquema.Maestra m
+	INNER JOIN LOSGDS.Sillon s
+		ON s.cod_sillon = m.Sillon_Codigo
+    INNER JOIN LOSGDS.Material mat
+        ON mat.tipo = m.Material_Tipo
+        AND mat.material_nombre = m.Material_Nombre
+        AND mat.descripcion = m.Material_Descripcion
+        AND mat.precio = m.Material_Precio
+    WHERE m.Sillon_Codigo IS NOT NULL;
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Sucursal AS 
+BEGIN
+    INSERT INTO LOSGDS.Sucursal 
+        (nro_sucursal, sucursal_direccion, mail, telefono)
+    SELECT DISTINCT
+        m.Sucursal_NroSucursal,
+        d.id_direccion,
+        m.Sucursal_mail,
+        m.Sucursal_telefono
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Direccion d ON d.nombre = m.Sucursal_Direccion
+	WHERE d.id_direccion IS NOT NULL AND m.Sucursal_NroSucursal IS NOT NULL AND m.Sucursal_Direccion IS NOT NULL;
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.MigrarFactura AS 
+BEGIN
+    INSERT INTO LOSGDS.Factura
+		(fact_cliente,fact_sucursal, fact_numero, fecha, total)
+    SELECT DISTINCT
+        c.id_cliente,
+        s.id_sucursal,
+        m.Factura_Numero,
+        m.Factura_Fecha,
+        m.Factura_Total
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.nro_sucursal
+    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
+    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
+    WHERE Cliente_Dni IS NOT NULL AND m.Sucursal_NroSucursal IS NOT NULL
+    AND Cliente_Apellido IS NOT NULL
+    AND Cliente_Nombre IS NOT NULL 
+	AND m.Factura_Numero IS NOT NULL
+    AND Cliente_FechaNacimiento IS NOT NULL 
+END
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Cancelacion_Pedido AS 
+BEGIN
+    INSERT INTO LOSGDS.Cancelacion_Pedido 
+        (cancel_ped_pedido, fecha, motivo)
+    SELECT DISTINCT
+        p.id_pedido,
+        m.Pedido_Cancelacion_Fecha,
+        m.Pedido_Cancelacion_Motivo
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
+    WHERE m.Pedido_Cancelacion_Fecha IS NOT NULL AND m.Pedido_Cancelacion_Motivo IS NOT NULL;
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Pedido AS 
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Pedido 
+        (det_ped_sillon, det_ped_pedido, cantidad, precio, subtotal)
+    SELECT DISTINCT
+        s.cod_sillon,
+        p.id_pedido, 
+        m.Detalle_Pedido_Cantidad,
+        m.Detalle_Pedido_Precio,
+        m.Detalle_Pedido_SubTotal
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Sillon s ON s.cod_sillon = m.Sillon_Codigo
+    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
+	WHERE s.cod_sillon IS NOT NULL AND p.id_pedido IS NOT NULL 
+		AND m.Pedido_Numero IS NOT NULL AND m.Sillon_Modelo_Codigo IS NOT NULL
+END;
+GO
+
+
 BEGIN TRANSACTION
-    EXECUTE LOSGDS.MigrarProvincias -- 24
-    EXECUTE LOSGDS.MigrarLocalidades --
+    EXECUTE LOSGDS.MigrarProvincias
+    EXECUTE LOSGDS.MigrarLocalidades
     EXECUTE LOSGDS.MigrarDirecciones
     EXECUTE LOSGDS.migrar_Modelo
 	EXECUTE LOSGDS.migrar_Medida
@@ -733,16 +720,15 @@ BEGIN TRANSACTION
 	EXECUTE LOSGDS.MigrarCliente
     EXECUTE LOSGDS.migrar_Sucursal
     EXECUTE LOSGDS.MigrarFactura
-    EXECUTE LOSGDS.MigrarEnvio -- :D
-    EXECUTE LOSGDS.migrar_Pedido -- :D
-    EXECUTE LOSGDS.migrar_Cancelacion_Pedido -- :D
-    EXECUTE LOSGDS.migrar_Detalle_Pedido --TODO MAL
-    EXECUTE LOSGDS.migrar_Detalle_Factura --0 ROWS
+    EXECUTE LOSGDS.MigrarEnvio
+    EXECUTE LOSGDS.migrar_Pedido
+    EXECUTE LOSGDS.migrar_Cancelacion_Pedido
+    EXECUTE LOSGDS.migrar_Detalle_Pedido
+    EXECUTE LOSGDS.migrar_Detalle_Factura
 	EXECUTE LOSGDS.MigrarProveedor
     EXECUTE LOSGDS.migrar_Compra
 	EXECUTE LOSGDS.migrar_Detalle_Compra
 COMMIT TRANSACTION
-
 
 
 ---Drop de procedures---
@@ -768,6 +754,3 @@ DROP PROCEDURE LOSGDS.MigrarFactura
 DROP PROCEDURE LOSGDS.MigrarCliente
 DROP PROCEDURE LOSGDS.migrar_Pedido
 DROP PROCEDURE LOSGDS.MigrarEnvio
-
-
-
