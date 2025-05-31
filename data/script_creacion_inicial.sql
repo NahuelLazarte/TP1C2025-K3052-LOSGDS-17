@@ -522,112 +522,9 @@ BEGIN
 END;
 GO
 
-BEGIN TRANSACTION
-	EXECUTE LOSGDS.migrar_Modelo
-	EXECUTE LOSGDS.migrar_Medida
-	EXECUTE LOSGDS.migrar_Sillon
-	EXECUTE LOSGDS.migrar_Material
-	EXECUTE LOSGDS.migrar_Tela
-	EXECUTE LOSGDS.migrar_Madera
-	EXECUTE LOSGDS.migrar_Relleno_Sillon
-	EXECUTE LOSGDS.migrar_SillonXMaterial
-COMMIT TRANSACTION
-
----Drop de procedures---
-DROP PROCEDURE LOSGDS.migrar_Modelo
-DROP PROCEDURE LOSGDS.migrar_Medida
-DROP PROCEDURE LOSGDS.migrar_Sillon
-DROP PROCEDURE LOSGDS.migrar_Material
-DROP PROCEDURE LOSGDS.migrar_Tela
-DROP PROCEDURE LOSGDS.migrar_Madera
-DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
-DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
-
-
-
-
-
-
-
-CREATE TABLE LOSGDS.Detalle_Factura (
-    id_det_fact BIGINT IDENTITY(1,1) PRIMARY KEY,
-    det_fact_factura BIGINT NOT NULL,
-    det_fact_det_pedido BIGINT NOT NULL,
-    precio DECIMAL(18,2),
-    cantidad DECIMAL(18,0),
-    subtotal DECIMAL(18,2),
-    CONSTRAINT fk_det_fact_factura FOREIGN KEY (det_fact_factura)
-        REFERENCES LOSGDS.Factura(id_factura),
-    CONSTRAINT fk_det_fact_det_pedido FOREIGN KEY (det_fact_det_pedido)
-        REFERENCES LOSGDS.Detalle_Pedido(id_det_pedido)
-)
-
-CREATE PROCEDURE LOSGDS.migrar_Detalle_Pedido AS
-BEGIN
-    INSERT INTO LOSGDS.Detalle_Pedido 
-        (det_ped_sillon, det_ped_pedido, cantidad, precio, subtotal)
-    SELECT DISTINCT
-        s.cod_sillon,
-        p.id_pedido, 
-        m.Detalle_Pedido_Cantidad,
-        m.Detalle_Pedido_Precio,
-        m.Detalle_Pedido_SubTotal
-    FROM gd_esquema.Maestra m
-    LEFT JOIN LOSGDS.Sillon s ON s.sillon_modelo = m.Sillon_Modelo_Codigo
-                         AND s.sillon_medida = (
-                             SELECT cod_medida
-                             FROM LOSGDS.Medida
-                             WHERE alto = m.Sillon_Medida_Alto
-                               AND ancho = m.Sillon_Medida_Ancho
-                               AND profundidad = m.Sillon_Medida_Profundidad
-                         )
-    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
-	WHERE s.cod_sillon IS NOT NULL AND p.id_pedido IS NOT NULL;
-END;
-GO
 
 -- Nahuel
-CREATE PROCEDURE LOSGDS.CREATE PROCEDURE LOSGDS.Detalle_Factura AS
-BEGIN
-    INSERT INTO LOSGDS.Detalle_Factura (id_det_fact, det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
-    SELECT DISTINCT
-		dp.id_det_pedido,
-		f.id_factura,
-		dp.id_det_pedido,
-        m.Detalle_Pedido_Precio,
-        m.Detalle_Pedido_Cantidad,
-		m.Detalle_Pedido_SubTotal
-    FROM GD1C2025.gd_esquema.Maestra m
-    INNER JOIN LOSGDS.Detalle_Pedido dp
-        ON dp.cantidad = m.Detalle_Pedido_Cantidad
-        AND dp.precio = m.Detalle_Pedido_Precio
-        AND dp.subtotal = m.Detalle_Pedido_SubTotal
-	INNER JOIN LOSGDS.Factura f
-	
-END;
-GO
-
-CREATE PROCEDURE LOSGDS.MigrarFactura AS
-BEGIN
-    INSERT INTO LOSGDS.Factura
-    SELECT DISTINCT
-        c.id_cliente,
-        s.id_sucursal,
-        m.Factura_Numero,
-        m.Factura_Fecha,
-        m.Factura_Total
-    FROM gd_esquema.Maestra m
-    lEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.id_sucursal
-    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
-    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
-    WHERE Cliente_Dni IS NOT NULL
-    AND Cliente_Apellido IS NOT NULL
-    AND Cliente_Nombre IS NOT NULL 
-    AND Cliente_FechaNacimiento IS NOT NULL 
-END
-go 
-
-CREATE PROCEDURE LOSGDS.Detalle_Factura AS
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Factura AS
 BEGIN
     INSERT INTO LOSGDS.Detalle_Factura (det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
     SELECT DISTINCT                
@@ -647,24 +544,30 @@ BEGIN
 END;
 GO
 
+BEGIN TRANSACTION
+	EXECUTE LOSGDS.migrar_Modelo
+	EXECUTE LOSGDS.migrar_Medida
+	EXECUTE LOSGDS.migrar_Sillon
+	EXECUTE LOSGDS.migrar_Material
+	EXECUTE LOSGDS.migrar_Tela
+	EXECUTE LOSGDS.migrar_Madera
+	EXECUTE LOSGDS.migrar_Relleno_Sillon
+	EXECUTE LOSGDS.migrar_SillonXMaterial
+	EXECUTE LOSGDS.Detalle_Factura
+COMMIT TRANSACTION
 
-CREATE PROCEDURE LOSGDS.MigrarFactura AS
-BEGIN
-    INSERT INTO LOSGDS.Factura
-    SELECT DISTINCT
-        c.id_cliente,
-        s.id_sucursal,
-        m.Factura_Numero,
-        m.Factura_Fecha,
-        m.Factura_Total
-    FROM gd_esquema.Maestra m
-    lEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.id_sucursal
-    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
-    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
-    WHERE Cliente_Dni IS NOT NULL
-    AND Cliente_Apellido IS NOT NULL
-    AND Cliente_Nombre IS NOT NULL 
-    AND Cliente_FechaNacimiento IS NOT NULL 
-END
-go
+---Drop de procedures---
+DROP PROCEDURE LOSGDS.migrar_Modelo
+DROP PROCEDURE LOSGDS.migrar_Medida
+DROP PROCEDURE LOSGDS.migrar_Sillon
+DROP PROCEDURE LOSGDS.migrar_Material
+DROP PROCEDURE LOSGDS.migrar_Tela
+DROP PROCEDURE LOSGDS.migrar_Madera
+DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
+DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
+DROP PROCEDURE LOSGDS.Detalle_Factura
+
+
+
+
 
