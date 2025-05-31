@@ -41,7 +41,7 @@ GO
 
 CREATE TABLE LOSGDS.Localidad (
     id_localidad BIGINT IDENTITY(1,1) PRIMARY KEY,
-    localidad_provincia BIGINT,
+    localidad_provincia BIGINT NOT NULL,
     nombre NVARCHAR(255),
     CONSTRAINT fk_localidad_provincia FOREIGN KEY(localidad_provincia)
         REFERENCES LOSGDS.Provincia(id_provincia)
@@ -50,7 +50,7 @@ GO
 
 CREATE TABLE LOSGDS.Direccion (
     id_direccion BIGINT IDENTITY(1,1) PRIMARY KEY,
-    direccion_localidad BIGINT,
+    direccion_localidad BIGINT NOT NULL,
     nombre NVARCHAR(255),
     CONSTRAINT fk_direccion_localidad FOREIGN KEY(direccion_localidad) 
         REFERENCES LOSGDS.Localidad(id_localidad)
@@ -59,7 +59,7 @@ GO
 
 CREATE TABLE LOSGDS.Proveedor (
     id_proveedor BIGINT IDENTITY(1,1) PRIMARY KEY,
-    proveedor_direccion BIGINT,
+    proveedor_direccion BIGINT NOT NULL,
     razon_social NVARCHAR(255),
     cuit NVARCHAR(255),
     telefono NVARCHAR(255),
@@ -71,7 +71,7 @@ GO
 
 CREATE TABLE LOSGDS.Sucursal (
     id_sucursal BIGINT IDENTITY(1,1) PRIMARY KEY,
-    nro_sucursal BIGINT,
+    nro_sucursal BIGINT NOT NULL,
 	sucursal_direccion BIGINT NOT NULL,
     mail NVARCHAR(255),
     telefono NVARCHAR(255),
@@ -144,10 +144,10 @@ GO
 CREATE TABLE LOSGDS.Cliente (
     id_cliente BIGINT IDENTITY(1,1) PRIMARY KEY,
     cliente_direccion BIGINT NOT NULL,
-    dni BIGINT,
-    nombre NVARCHAR(255),
-    apellido NVARCHAR(255),
-    fecha_nacimiento DATETIME2(6),
+    dni BIGINT NOT NULL,
+    nombre NVARCHAR(255) NOT NULL,
+    apellido NVARCHAR(255) NOT NULL,
+    fecha_nacimiento DATETIME2(6) NOT NULL,
     mail NVARCHAR(255),
     telefono NVARCHAR(255),
     CONSTRAINT fk_cliente_direccion FOREIGN KEY (cliente_direccion)
@@ -208,7 +208,7 @@ GO
 CREATE TABLE LOSGDS.Envio (
     envio_nro BIGINT IDENTITY(1,1) PRIMARY KEY,
     numero DECIMAL(18,0),
-    envio_factura BIGINT,
+    envio_factura BIGINT NOT NULL,
     fecha_programada DATETIME2(6),
     fecha DATETIME2(6),
     importe_traslado DECIMAL(18,2),
@@ -248,7 +248,7 @@ CREATE TABLE LOSGDS.Tela (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
     textura NVARCHAR(255),
-    tela_material BIGINT,
+    tela_material BIGINT NOT NULL,
     CONSTRAINT fk_tela_material FOREIGN KEY (tela_material) 
         REFERENCES LOSGDS.Material (id_material)
 )
@@ -257,7 +257,7 @@ GO
 CREATE TABLE LOSGDS.Relleno_Sillon (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     densidad DECIMAL(38,2),
-    relleno_material BIGINT,
+    relleno_material BIGINT NOT NULL,
     CONSTRAINT fk_relleno_material FOREIGN KEY (relleno_material) 
         REFERENCES LOSGDS.Material (id_material)
 )
@@ -268,7 +268,7 @@ CREATE TABLE LOSGDS.Madera (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     color NVARCHAR(255),
     dureza NVARCHAR(255),
-    madera_material BIGINT,
+    madera_material BIGINT NOT NULL,
     CONSTRAINT fk_madera_material FOREIGN KEY (madera_material) 
         REFERENCES LOSGDS.Material (id_material)
 )
