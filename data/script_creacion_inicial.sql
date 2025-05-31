@@ -124,7 +124,7 @@ CREATE TABLE LOSGDS.Modelo (
 
 -- Nahuel
 CREATE TABLE LOSGDS.Medida (
-    cod_medida BIGINT PRIMARY KEY,
+    cod_medida BIGINT IDENTITY(1,1) PRIMARY KEY,
     alto DECIMAL(18,2),
     ancho DECIMAL(18,2),
     profundidad DECIMAL(18,2),
@@ -428,13 +428,12 @@ BEGIN
 END;
 GO
 
--- Nahuel
+-- Procedimiento para migrar medidas (no necesita cambios si ya está así)
 CREATE PROCEDURE LOSGDS.migrar_Medida AS
 BEGIN
     INSERT INTO LOSGDS.Medida 
-        (cod_medida, alto, ancho, profundidad, precio)
+        (alto, ancho, profundidad, precio)
     SELECT DISTINCT
-        Sillon_Codigo,
         Sillon_Medida_Alto, 
         Sillon_Medida_Ancho,
         Sillon_Medida_Profundidad,
@@ -444,24 +443,24 @@ BEGIN
 END;
 GO
 
-CREATE INDEX ind_medida_migracion 
-ON LOSGDS.Medida (alto, ancho, profundidad, precio);
-GO
-CREATE INDEX ind_modelo_migracion 
-ON LOSGDS.Modelo (cod_modelo);
-GO
--- Nahuel
+-- Procedimiento para migrar sillones (modificado para usar JOIN con Medida)
 CREATE PROCEDURE LOSGDS.migrar_Sillon AS
 BEGIN
     INSERT INTO LOSGDS.Sillon (cod_sillon, sillon_modelo, sillon_medida)
     SELECT DISTINCT
-		m.Sillon_Codigo,
-		m.Sillon_Modelo_Codigo,
-		m.Sillon_Codigo 
-	FROM gd_esquema.Maestra m
-	WHERE m.Sillon_Codigo IS NOT NULL
+        m.Sillon_Codigo,
+        m.Sillon_Modelo_Codigo,
+        med.cod_medida
+    FROM gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Medida med
+        ON med.alto = m.Sillon_Medida_Alto
+        AND med.ancho = m.Sillon_Medida_Ancho
+        AND med.profundidad = m.Sillon_Medida_Profundidad
+        AND med.precio = m.Sillon_Medida_Precio
+    WHERE m.Sillon_Codigo IS NOT NULL
 END;
 GO
+
 
 -- Nahuel
 CREATE PROCEDURE LOSGDS.migrar_Material AS
@@ -567,3 +566,129 @@ DROP PROCEDURE LOSGDS.migrar_Tela
 DROP PROCEDURE LOSGDS.migrar_Madera
 DROP PROCEDURE LOSGDS.migrar_Relleno_Sillon
 DROP PROCEDURE LOSGDS.migrar_SillonXMaterial
+
+
+
+
+
+
+
+CREATE TABLE LOSGDS.Detalle_Factura (
+    id_det_fact BIGINT IDENTITY(1,1) PRIMARY KEY,
+    det_fact_factura BIGINT NOT NULL,
+    det_fact_det_pedido BIGINT NOT NULL,
+    precio DECIMAL(18,2),
+    cantidad DECIMAL(18,0),
+    subtotal DECIMAL(18,2),
+    CONSTRAINT fk_det_fact_factura FOREIGN KEY (det_fact_factura)
+        REFERENCES LOSGDS.Factura(id_factura),
+    CONSTRAINT fk_det_fact_det_pedido FOREIGN KEY (det_fact_det_pedido)
+        REFERENCES LOSGDS.Detalle_Pedido(id_det_pedido)
+)
+
+CREATE PROCEDURE LOSGDS.migrar_Detalle_Pedido AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Pedido 
+        (det_ped_sillon, det_ped_pedido, cantidad, precio, subtotal)
+    SELECT DISTINCT
+        s.cod_sillon,
+        p.id_pedido, 
+        m.Detalle_Pedido_Cantidad,
+        m.Detalle_Pedido_Precio,
+        m.Detalle_Pedido_SubTotal
+    FROM gd_esquema.Maestra m
+    LEFT JOIN LOSGDS.Sillon s ON s.sillon_modelo = m.Sillon_Modelo_Codigo
+                         AND s.sillon_medida = (
+                             SELECT cod_medida
+                             FROM LOSGDS.Medida
+                             WHERE alto = m.Sillon_Medida_Alto
+                               AND ancho = m.Sillon_Medida_Ancho
+                               AND profundidad = m.Sillon_Medida_Profundidad
+                         )
+    LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
+	WHERE s.cod_sillon IS NOT NULL AND p.id_pedido IS NOT NULL;
+END;
+GO
+
+-- Nahuel
+CREATE PROCEDURE LOSGDS.CREATE PROCEDURE LOSGDS.Detalle_Factura AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Factura (id_det_fact, det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
+    SELECT DISTINCT
+		dp.id_det_pedido,
+		f.id_factura,
+		dp.id_det_pedido,
+        m.Detalle_Pedido_Precio,
+        m.Detalle_Pedido_Cantidad,
+		m.Detalle_Pedido_SubTotal
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Detalle_Pedido dp
+        ON dp.cantidad = m.Detalle_Pedido_Cantidad
+        AND dp.precio = m.Detalle_Pedido_Precio
+        AND dp.subtotal = m.Detalle_Pedido_SubTotal
+	INNER JOIN LOSGDS.Factura f
+	
+END;
+GO
+
+CREATE PROCEDURE LOSGDS.MigrarFactura AS
+BEGIN
+    INSERT INTO LOSGDS.Factura
+    SELECT DISTINCT
+        c.id_cliente,
+        s.id_sucursal,
+        m.Factura_Numero,
+        m.Factura_Fecha,
+        m.Factura_Total
+    FROM gd_esquema.Maestra m
+    lEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.id_sucursal
+    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
+    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
+    WHERE Cliente_Dni IS NOT NULL
+    AND Cliente_Apellido IS NOT NULL
+    AND Cliente_Nombre IS NOT NULL 
+    AND Cliente_FechaNacimiento IS NOT NULL 
+END
+go 
+
+CREATE PROCEDURE LOSGDS.Detalle_Factura AS
+BEGIN
+    INSERT INTO LOSGDS.Detalle_Factura (det_fact_factura, det_fact_det_pedido, precio, cantidad, subtotal)
+    SELECT DISTINCT                
+        f.id_factura,                      
+        dp.id_det_pedido,                 
+        m.Detalle_Pedido_Precio,           
+        m.Detalle_Pedido_Cantidad,         
+        m.Detalle_Pedido_SubTotal          
+    FROM GD1C2025.gd_esquema.Maestra m
+    INNER JOIN LOSGDS.Detalle_Pedido dp
+        ON dp.cantidad = m.Detalle_Pedido_Cantidad
+        AND dp.precio = m.Detalle_Pedido_Precio
+        AND dp.subtotal = m.Detalle_Pedido_SubTotal
+    INNER JOIN LOSGDS.Factura f
+        ON f.fact_numero = m.Factura_Numero
+        AND f.fecha = m.Factura_Fecha
+END;
+GO
+
+
+CREATE PROCEDURE LOSGDS.MigrarFactura AS
+BEGIN
+    INSERT INTO LOSGDS.Factura
+    SELECT DISTINCT
+        c.id_cliente,
+        s.id_sucursal,
+        m.Factura_Numero,
+        m.Factura_Fecha,
+        m.Factura_Total
+    FROM gd_esquema.Maestra m
+    lEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.id_sucursal
+    LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
+    AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
+    WHERE Cliente_Dni IS NOT NULL
+    AND Cliente_Apellido IS NOT NULL
+    AND Cliente_Nombre IS NOT NULL 
+    AND Cliente_FechaNacimiento IS NOT NULL 
+END
+go
+
