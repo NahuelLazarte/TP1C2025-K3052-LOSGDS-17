@@ -469,7 +469,7 @@ BEGIN
         AND mat.material_nombre = m.Material_Nombre
         AND mat.descripcion = m.Material_Descripcion
         AND mat.precio = m.Material_Precio
-
+	WHERE m.Madera_Color IS NOT NULL 
 END;
 GO
 
@@ -485,6 +485,8 @@ BEGIN
         AND mat.material_nombre = m.Material_Nombre
         AND mat.descripcion = m.Material_Descripcion
         AND mat.precio = m.Material_Precio
+	WHERE mat.id_material IS NOT NULL AND 
+		  m.Relleno_Densidad IS NOT NULL
 END;
 GO
 
