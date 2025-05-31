@@ -282,9 +282,9 @@ CREATE TABLE LOSGDS.Madera (
         REFERENCES LOSGDS.Material (id_material)
 )
 GO
-
+	
 -- Matt
-CREATE PROCEDURE LOSGDS.migrar_Cancelacion_Pedido AS
+CREATE PROCEDURE LOSGDS.migrar_Cancelacion_Pedido AS -- Bien | 1925
 BEGIN
     INSERT INTO LOSGDS.Cancelacion_Pedido 
         (cancel_ped_pedido, fecha, motivo)
@@ -294,7 +294,7 @@ BEGIN
         m.Pedido_Cancelacion_Motivo
     FROM gd_esquema.Maestra m
     LEFT JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
-    WHERE m.Pedido_Cancelacion_Fecha IS NOT NULL AND p.id_pedido IS NOT NULL;
+    WHERE m.Pedido_Cancelacion_Fecha IS NOT NULL AND m.Pedido_Cancelacion_Motivo IS NOT NULL;
 END;
 GO
 
@@ -371,8 +371,8 @@ BEGIN
 		AND m.Pedido_Numero IS NOT NULL AND m.Sillon_Modelo_Codigo IS NOT NULL
 END;
 GO
-
-CREATE PROCEDURE LOSGDS.MigrarFactura AS
+ 
+CREATE PROCEDURE LOSGDS.MigrarFactura AS -- Bien | 17408
 BEGIN
     INSERT INTO LOSGDS.Factura
 		(fact_cliente,fact_sucursal, fact_numero, fecha, total)
@@ -383,7 +383,7 @@ BEGIN
         m.Factura_Fecha,
         m.Factura_Total
     FROM gd_esquema.Maestra m
-    lEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.nro_sucursal
+    LEFT JOIN LOSGDS.Sucursal s ON Sucursal_NroSucursal = s.nro_sucursal
     LEFT JOIN LOSGDS.Cliente c ON Cliente_Dni = c.dni AND Cliente_Apellido = c.apellido 
     AND Cliente_Nombre =c.nombre and Cliente_FechaNacimiento = c.fecha_nacimiento
     WHERE Cliente_Dni IS NOT NULL AND m.Sucursal_NroSucursal IS NOT NULL
@@ -395,7 +395,7 @@ END
 GO
 
 
-CREATE PROCEDURE LOSGDS.MigrarCliente AS
+CREATE PROCEDURE LOSGDS.MigrarCliente AS -- Bien | 20509
 BEGIN
     INSERT INTO LOSGDS.Cliente
     SELECT DISTINCT
@@ -719,8 +719,8 @@ END
 GO
 
 BEGIN TRANSACTION
-    EXECUTE LOSGDS.MigrarProvincias
-    EXECUTE LOSGDS.MigrarLocalidades
+    EXECUTE LOSGDS.MigrarProvincias -- 24
+    EXECUTE LOSGDS.MigrarLocalidades --
     EXECUTE LOSGDS.MigrarDirecciones
     EXECUTE LOSGDS.migrar_Modelo
 	EXECUTE LOSGDS.migrar_Medida
