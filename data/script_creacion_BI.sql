@@ -46,7 +46,8 @@ GO
 
 CREATE TABLE LOSGDS.BI_Dim_RangoEtario (
     rango_id INT IDENTITY PRIMARY KEY,
-    rango_etario NVARCHAR(50) NOT NULL
+    rango_etario_inicio INT,
+    rango_etario_fin INT
 )
 GO
 
@@ -83,7 +84,7 @@ CREATE TABLE LOSGDS.BI_Hechos_Compras (
 GO
 
 
--- Migracion Dimensiones
+---------- Migracion Dimensiones
 
 -- Migracion BI_Dim_Tiempo
 CREATE PROCEDURE LOSGDS.MigrarDimTiempo
@@ -112,7 +113,81 @@ END
 GO
 
 
+-- Migracion BI_Dim_Sucursal
+CREATE PROCEDURE LOSGDS.MigrarDimSucursal
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_Sucursal
+    SELECT DISTINCT 
+        s.nro_sucursal 
+	FROM LOSGDS.Sucursal s
+END
+GO
 
+
+-- Migracion BI_Dim_TipoMaterial
+CREATE PROCEDURE LOSGDS.MigrarDimTipoMaterial
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_TipoMaterial
+    SELECT DISTINCT 
+        m.tipo 
+	FROM LOSGDS.Material m
+END
+GO
+
+
+-- Migracion BI_Dim_Ubicacion
+CREATE PROCEDURE LOSGDS.MigrarDimUbicacion
+AS
+BEGIN
+    
+INSERT INTO LOSGDS.BI_Dim_Ubicacion (provincia_id, localidad_id, nombre_provincia, nombre_localidad)
+		SELECT DISTINCT 
+			*
+		FROM LOSGDS.Proveedor p
+		JOIN LOSGDS.Direccion d ON d.id_direccion = p.proveedor_direccion
+		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+	UNION 
+		SELECT DISTINCT
+		*
+		FROM LOSGDS.Sucursal s
+		JOIN LOSGDS.Direccion d ON d.id_direccion = s.sucursal_direccion
+		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+	UNION
+		SELECT DISTINCT
+		*
+		FROM LOSGDS.Cliente c
+		JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
+		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+END
+GO
+
+-- Crear Rangos Etarios BI_Dim_RangoEtario
+
+CREATE PROCEDURE CrearRangosEtarios
+AS
+BEGIN
+	BEGIN TRANSACTION;
+		INSERT INTO LOSGDS.BI_Dim_RangoEtario(rango_etario_inicio,rango_etario_fin)
+        VALUES
+		(NULL,25),
+		(25,35),
+		(35,50),
+		(50,null)
+	COMMIT TRANSACTION;
+END
+GO
+
+
+
+
+
+
+---------- Migracion HECHOS
 
 -- Migracion BI_Hechos_Compras
 
