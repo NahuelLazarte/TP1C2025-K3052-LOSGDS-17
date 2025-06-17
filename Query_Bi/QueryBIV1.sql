@@ -57,32 +57,118 @@ GO
 
 
 /*MIGRACION HECHOS*/
+CREATE PROCEDURE HOBBITS11.MigrarDimTiempo
+AS
+BEGIN
+INSERT INTO LOSGDS.BI_Dim_Tiempo (anio, mes, cuatrimestre)
+SELECT DISTINCT 
+    YEAR(p.pedi_fecha) AS anio,
+    MONTH(p.pedi_fecha) AS mes,
+    CASE 
+        WHEN MONTH(p.pedi_fecha) BETWEEN 1 AND 4 THEN '1º Cuatrimestre'
+        WHEN MONTH(p.pedi_fecha) BETWEEN 5 AND 8 THEN '2º Cuatrimestre'
+        ELSE '3º Cuatrimestre'
+    END AS cuatrimestre
+FROM LOSGDS.Pedido p;
 
--- Migración de Hechos
+INSERT INTO LOSGDS.BI_Dim_Estado_Pedido (estado_pedido)
+SELECT DISTINCT estado
+FROM LOSGDS.Pedido;
+END
+GO
 
--- Migración BI_Hechos_Publicaciones
+CREATE PROCEDURE HOBBITS11.MigrarDimTiempo
+AS
+BEGIN
+INSERT INTO LOSGDS.BI_Dim_Sucursal (nro_sucursal)
+SELECT DISTINCT sucu_nro
+FROM LOSGDS.Sucursal;
+END
+GO
+
+CREATE PROCEDURE HOBBITS11.MigrarDimTiempo
+AS
+BEGIN
+INSERT INTO LOSGDS.BI_Dim_Estado_Pedido (estado_pedido)
+SELECT DISTINCT estado
+FROM LOSGDS.Pedido;
+
+
+CREATE PROCEDURE HOBBITS11.MigrarDimTiempo
+AS
+BEGIN
+INSERT INTO LOSGDS.BI_Dim_Sucursal (nro_sucursal)
+SELECT DISTINCT sucu_nro
+FROM LOSGDS.Sucursal;
+END
+GO
+
+CREATE PROCEDURE HOBBITS11.MigrarDimTiempo
+AS
+BEGIN
+INSERT INTO LOSGDS.BI_Dim_Turno_Ventas (turno_ventas)
+SELECT DISTINCT 
+    CASE 
+        WHEN CAST(FORMAT(pedi_fecha, 'HH:mm') AS TIME) 
+		BETWEEN '08:00' AND '13:59' THEN '08:00 - 14:00'
+        ELSE '14:00 - 20:00'
+    END
+FROM LOSGDS.Pedido;
+END
+GO
+
+
 CREATE PROCEDURE LOSGDS.MigrarHechosPedidos
 AS
 BEGIN
+    INSERT INTO LOSGDS.BI_Hechos_Pedidos (
+        id_tiempo,
+        id_estado_pedido,
+        id_sucursal,
+        id_turno_ventas,
+        cantidad,
+        dias_promedio_facturacion
+    )
+    SELECT 
+        t.id_tiempo,
+        ep.id_estado_pedido,
+        s.id_sucursal,
+        tv.id_turno_ventas,
+        COUNT(*) AS cantidad_pedidos,
+        AVG(DATEDIFF(DAY, p.pedi_fecha, f.fact_fecha)) AS dias_promedio_facturacion
+    FROM LOSGDS.Pedido p
+    JOIN LOSGDS.Factura f ON f.fact_pedido = p.pedi_id
 
-    INSERT INTO LOSGDS.BI_Hechos_Pedidos
+    JOIN LOSGDS.BI_Dim_Sucursal s 
+        ON s.nro_sucursal = p.pedi_sucursal
 
-	SELECT
-	id_t,
-	tiempo_id,
-	marca_id,
-	SUM(publ_stock),
-	SUM(DATEDIFF(DAY, publ_fecha_inicio, publ_fecha_fin)),
-	count(*)
-	FROM LOSGDS.Pedido
-	JOIN LOSGDS.BI_Dim_Estado_Pedido ON prod_id = publ_producto
-	JOIN LOSGDS.BI_Dim_RubroSubRubro ON prod_subr = subrubro_id
-	JOIN LOSGDS.BI_Dim_Tiempo ON YEAR(publ_fecha_inicio) = anio AND MONTH(publ_fecha_inicio) = mes
-	JOIN LOSGDS.BI_Dim_Marca on prod_marca = marca_id
-	GROUP BY subrubro_id, tiempo_id, marca_id
-	
+    JOIN LOSGDS.BI_Dim_Estado_Pedido ep 
+        ON ep.estado_pedido = p.estado
+
+    JOIN LOSGDS.BI_Dim_Tiempo t 
+        ON t.anio = YEAR(p.pedi_fecha) AND t.mes = MONTH(p.pedi_fecha)
+
+    JOIN LOSGDS.BI_Dim_Turno_Ventas tv 
+        ON tv.turno_ventas = 
+            CASE 
+                WHEN CAST(FORMAT(p.pedi_fecha, 'HH:mm') AS TIME) BETWEEN '08:00' AND '13:59' THEN '08:00 - 14:00'
+                ELSE '14:00 - 20:00'
+            END
+
+    GROUP BY 
+        t.id_tiempo,
+        ep.id_estado_pedido,
+        s.id_sucursal,
+        tv.id_turno_ventas;
 END
 GO
+
+
+
+
+
+
+
 
 
 /*VISTAS*/
