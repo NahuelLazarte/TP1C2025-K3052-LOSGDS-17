@@ -83,9 +83,38 @@ CREATE TABLE LOSGDS.BI_Hechos_Compras (
 GO
 
 
+-- Migracion Dimensiones
+
+-- Migracion BI_Dim_Tiempo
+CREATE PROCEDURE LOSGDS.MigrarDimTiempo
+AS
+BEGIN
+
+    INSERT INTO LOSGDS.BI_Dim_Tiempo
+    SELECT DISTINCT 
+        YEAR(fecha),
+        CASE 
+            WHEN MONTH(fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+			else 'Tercer Cuatrimestre'
+        END,
+        MONTH(fecha)
+    FROM (
+			SELECT fecha as fecha FROM LOSGDS.Compra
+			UNION
+			SELECT fecha FROM LOSGDS.Envio
+			UNION
+			SELECT fecha FROM LOSGDS.Pedido
+			UNION
+			SELECT fecha FROM LOSGDS.Factura
+    ) AS fechas
+END
+GO
 
 
--- Migracion BI_Hechos_Publicaciones
+
+
+-- Migracion BI_Hechos_Compras
 
 CREATE PROCEDURE LOSGDS.MigrarHechosCompras
 AS
