@@ -91,8 +91,8 @@ GO
 Cantidad de pedidos registrados por turno, por sucursal
 según el mes de cada año.*/
 
-CREATE VIEW LOSGDS.v_volumen_pedidos AS
-SELECT 
+CREATE VIEW LOSGDS.BI_Vista_Volumen_Pedidos AS
+SELECT
     t.anio,
     t.mes,
     s.nro_sucursal,
@@ -102,22 +102,21 @@ FROM LOSGDS.BI_Hechos_Pedidos h
 JOIN LOSGDS.BI_Dim_Tiempo t ON h.id_tiempo = t.id_tiempo
 JOIN LOSGDS.BI_Dim_Sucursal s ON h.id_sucursal = s.id_sucursal
 JOIN LOSGDS.BI_Dim_Turno_Ventas v ON h.id_turno_ventas = v.id_turno_ventas
-GROUP BY 
-    t.anio, t.mes, s.nro_sucursal, v.turno_ventas;
+GROUP BY
+    t.anio, t.mes, s.nro_sucursal, v.turno_ventas
 GO
 
 /*5 Conversión de pedidos: 
 Porcentaje de pedidos según estado, por cuatrimestre y sucursal*/
-CREATE VIEW LOSGDS.v_conversion_pedidos AS
+CREATE VIEW LOSGDS.BI_Vista_Conversion_Pedidos AS
 SELECT 
     t.anio,
     t.cuatrimestre,
     s.nro_sucursal,
     e.estado_pedido,
-    SUM(h.can	tidad) AS cantidad_pedidos,
-    CAST(SUM(h.cantidad) * 100.0 / NULLIF(SUM(SUM(h.cantidad)) OVER (
-        PARTITION BY t.anio, t.cuatrimestre, s.id_sucursal
-    ), 0) AS DECIMAL(5,2)) AS porcentaje
+    SUM(h.cantidad) AS cantidad_pedidos,
+    CAST(SUM(h.cantidad) * 100.0 / 
+        NULLIF(SUM(h.cantidad) OVER (PARTITION BY t.anio, t.cuatrimestre, s.id_sucursal),0) AS DECIMAL(5,2)) AS porcentaje
 FROM LOSGDS.BI_Hechos_Pedidos h
 JOIN LOSGDS.BI_Dim_Tiempo t ON h.id_tiempo = t.id_tiempo
 JOIN LOSGDS.BI_Dim_Sucursal s ON h.id_sucursal = s.id_sucursal
@@ -129,12 +128,12 @@ GO
 /*6 Tiempo promedio de fabricación: Tiempo promedio que tarda cada sucursal
 entre que se registra un pedido y registra la factura para el mismo. Por
 cuatrimestre.*/
-CREATE VIEW LOSGDS.v_tiempo_promedio_fabricacion AS
+CREATE VIEW LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion AS
 SELECT 
     t.anio,
     t.cuatrimestre,
     s.nro_sucursal,
-    AVG(h.dias_promedio_facturacion) AS promedio_dias
+    h.dias_promedio_facturacion AS promedio_dias
 FROM LOSGDS.BI_Hechos_Pedidos h
 JOIN LOSGDS.BI_Dim_Tiempo t ON h.id_tiempo = t.id_tiempo
 JOIN LOSGDS.BI_Dim_Sucursal s ON h.id_sucursal = s.id_sucursal
