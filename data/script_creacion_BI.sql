@@ -71,41 +71,54 @@ BEGIN
     INSERT INTO LOSGDS.BI_Hechos_Compras
 		SELECT
 			t.tiempo_id,
-			id_material,
+			tm.id_material,
 			id_sucursal,
-			SUM(c.total),
-			COUNT(*)
+			SUM(c.total) AS importe_total,
+			COUNT(*) AS cantidad
 		FROM LOSGDS.Compra c
 		JOIN LOSGDS.BI_Dim_Tiempo t ON YEAR(c.fecha) = t.anio AND MONTH(c.fecha) = mes
-		--JOIN LOSGDS.BI_Dim_TipoMaterial tm ON tm.id_material = c.
-		--GROUP BY subrubro_id, tiempo_id, marca_id
+		JOIN LOSGDS.Detalle_Compra dc ON c.id_compra = dc.det_compra_compra
+		JOIN LOSGDS.Material m ON m.id_material = dc.detalle_material
+		JOIN LOSGDS.BI_Dim_TipoMaterial tm ON tm.tipo_material = m.tipo
+		JOIN LOSGDS.BI_Dim_Sucursal s ON s.nro_sucursal = c.compra_sucursal
+		GROUP BY t.tiempo_id, tm.id_material, id_sucursal
 END
 GO
 
 
 
+-- VISTAS
 
-CREATE PROCEDURE LOSGDS.MigrarHechosPublicaciones
-AS
-BEGIN
 
-    INSERT INTO HOBBITS11.BI_Hechos_Publicaciones
 
-	SELECT
-	subrubro_id,
-	tiempo_id,
-	marca_id,
-	SUM(publ_stock),
-	SUM(DATEDIFF(DAY, publ_fecha_inicio, publ_fecha_fin)),
-	count(*)
-	FROM HOBBITS11.Publicacion
-	JOIN HOBBITS11.Producto ON prod_id = publ_producto
-	JOIN HOBBITS11.BI_Dim_RubroSubRubro ON prod_subr = subrubro_id
-	JOIN HOBBITS11.BI_Dim_Tiempo ON YEAR(publ_fecha_inicio) = anio AND MONTH(publ_fecha_inicio) = mes
-	JOIN HOBBITS11.BI_Dim_Marca on prod_marca = marca_id
-	GROUP BY subrubro_id, tiempo_id, marca_id
-	
-END
+-- 7 Promedio de Compras: importe promedio de compras por mes.
+
+CREATE VIEW LOSGDS.BI_Vista_ComprasPromedio AS
+	SELECT 
+		t.mes AS mes,
+		t.anio AS anio,
+		CONVERT(decimal(18,2), c.importe_total / c.cantidad_total) AS importe_promedio
+	FROM LOSGDS.BI_Hechos_Compras c
+	JOIN LOSGDS.BI_Dim_Tiempo t ON t.tiempo_id = c.id_tiempo 
+	GROUP BY t.mes, t.anio
 GO
 
+
+/* 8 Compras por Tipo de Material. Importe total gastado por tipo de material,
+sucursal y cuatrimestre. */
+
+
+CREATE VIEW LOSGDS.BI_Vista_ComprasTotal AS
+	SELECT 
+		t.cuatrimestre AS cuatrimestre,
+		t.anio AS anio,
+		tm.tipo_material AS tipoMaterial,
+		s.nro_sucursal AS nroSucursal,
+		SUM(c.importe_total) AS importeTotal
+	FROM LOSGDS.BI_Hechos_Compras c
+	JOIN LOSGDS.BI_Dim_Tiempo t ON t.tiempo_id = c.id_tiempo
+	JOIN LOSGDS.BI_Dim_TipoMaterial tm ON c.id_material = tm.id_material
+	JOIN LOSGDS.BI_Dim_Sucursal s ON s.id_sucursal = c.id_sucursal
+	GROUP BY t.cuatrimestre, t.anio
+GO
 
