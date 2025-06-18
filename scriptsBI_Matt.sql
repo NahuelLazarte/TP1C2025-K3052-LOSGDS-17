@@ -5,7 +5,7 @@ GO
 --DIMENSIONES
 --Creacion de las dimensiones
 CREATE TABLE LOSGDS.BI_Dim_Tiempo (
-    tiempo_id BIGINT IDENTITY PRIMARY KEY,
+    id_tiempo BIGINT IDENTITY PRIMARY KEY,
     anio INT NOT NULL,
 	mes int NOT NULL,
     cuatrimestre NVARCHAR(255) NOT NULL,
@@ -13,16 +13,16 @@ CREATE TABLE LOSGDS.BI_Dim_Tiempo (
 GO
 
 CREATE TABLE LOSGDS.BI_Dim_Ubicacion (
-    ubicacion_id INT IDENTITY PRIMARY KEY,
-	provincia_id INT NOT NULL,
-	localidad_id INT NOT NULL,
+    id_ubicacion BIGINT IDENTITY PRIMARY KEY,
+	id_provincia BIGINT NOT NULL,
+	id_localidad BIGINT NOT NULL,
 	nombre_provincia NVARCHAR(255) NOT NULL,
 	nombre_localidad NVARCHAR(255) NOT NULL
 )
 GO
 
-CREATE TABLE LOSGDS.BI_Dim_RangoEtario (
-    rango_id INT IDENTITY PRIMARY KEY,
+CREATE TABLE LOSGDS.BI_Dim_Rango_Etario_Cliente (
+    id_rango_etario BIGINT IDENTITY PRIMARY KEY,
     rango_etario_inicio INT,
     rango_etario_fin INT
 )
@@ -81,36 +81,52 @@ CREATE PROCEDURE MigrarDimUbicacion
 AS
 BEGIN
     
-INSERT INTO LOSGDS.BI_Dim_Ubicacion (provincia_id, localidad_id, nombre_provincia, nombre_localidad)
-		SELECT DISTINCT 
-			*
-		FROM LOSGDS.Proveedor p
-		JOIN LOSGDS.Direccion d ON d.id_direccion = p.proveedor_direccion
-		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
-		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
-	UNION 
-		SELECT DISTINCT
-		*
-		FROM LOSGDS.Sucursal s
-		JOIN LOSGDS.Direccion d ON d.id_direccion = s.sucursal_direccion
-		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
-		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
-	UNION
-		SELECT DISTINCT
-		*
-		FROM LOSGDS.Cliente c
-		JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
-		JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
-		JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provincia, nombre_localidad)
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Proveedor p
+    JOIN LOSGDS.Direccion d ON d.id_direccion = p.proveedor_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+
+    UNION
+
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Sucursal s
+    JOIN LOSGDS.Direccion d ON d.id_direccion = s.sucursal_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+
+    UNION
+
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Cliente c
+    JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
 END
 GO
 
 
-CREATE PROCEDURE CrearRangosEtarios
+DROP PROCEDURE IF EXISTS LOSGDS.CrearRangosEtarios;
+GO
+
+CREATE PROCEDURE LOSGDS.CrearRangosEtarios
 AS
 BEGIN
 	BEGIN TRANSACTION;
-		INSERT INTO LOSGDS.BI_Dim_RangoEtario(rango_etario_inicio,rango_etario_fin)
+		INSERT INTO LOSGDS.BI_Dim_Rango_Etario_Cliente(rango_etario_inicio,rango_etario_fin)
         VALUES
 		(NULL,25),
 		(25,35),
