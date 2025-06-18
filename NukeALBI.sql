@@ -6,26 +6,38 @@ GO
 -- 1. DROP CONSTRAINTS 
 
 -- BI_Hechos_Facturacion
-ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_tiempo;
-ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_ubicacion;
-ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_sucursal;
-ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_rango_etario;
-ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_modelo_sillon;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Facturacion', 'U') IS NOT NULL
+BEGIN
+    ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_tiempo;
+    ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_ubicacion;
+    ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_sucursal;
+    ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_rango_etario;
+    ALTER TABLE LOSGDS.BI_Hechos_Facturacion DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Facturacion__id_modelo_sillon;
+END
 
 -- BI_Hechos_Compras
-ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_tiempo;
-ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_material;
-ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_sucursal;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Compras', 'U') IS NOT NULL
+BEGIN
+	ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_tiempo;
+	ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_material;
+	ALTER TABLE LOSGDS.BI_Hechos_Compras DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Compras__id_sucursal;
+END
 
 -- BI_Hechos_Envios
-ALTER TABLE LOSGDS.BI_Hechos_Envios DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Envios__id_tiempo;
-ALTER TABLE LOSGDS.BI_Hechos_Envios DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Envios__id_ubicacion;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Envios', 'U') IS NOT NULL
+BEGIN
+	ALTER TABLE LOSGDS.BI_Hechos_Envios DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Envios__id_tiempo;
+	ALTER TABLE LOSGDS.BI_Hechos_Envios DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Envios__id_ubicacion;
+END
 
 -- BI_Hechos_Pedidos
-ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_tiempo;
-ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_estado_pedido;
-ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_sucursal;
-ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_turno_ventas;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Pedidos', 'U') IS NOT NULL
+BEGIN
+	ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_tiempo;
+	ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_estado_pedido;
+	ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_sucursal;
+	ALTER TABLE LOSGDS.BI_Hechos_Pedidos DROP CONSTRAINT IF EXISTS FK__BI_Hechos_Pedidos__id_turno_ventas;
+END
 
 -- 2. DROP TABLAS DE HECHOS (primero para evitar errores de FK)
 
@@ -47,9 +59,8 @@ DROP TABLE IF EXISTS LOSGDS.BI_Dim_Estado_Pedido;
 DROP TABLE IF EXISTS LOSGDS.BI_Dim_Turno_Ventas;
 
 -- 4. DROP PROCEDIMIENTOS almacenados relacionados al BI
-
-DECLARE @sql NVARCHAR(MAX) = N'';
-SELECT @sql += 'DROP PROCEDURE IF EXISTS LOSGDS.' + QUOTENAME(name) + ';' + CHAR(13)
+DECLARE @sqlProcedures NVARCHAR(MAX) = N'';
+SELECT @sqlProcedures += 'DROP PROCEDURE IF EXISTS LOSGDS.' + QUOTENAME(name) + ';' + CHAR(13)
 FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'LOSGDS'
   AND (
@@ -58,4 +69,18 @@ WHERE SCHEMA_NAME(schema_id) = 'LOSGDS'
     name LIKE '%Hechos%' OR
     name LIKE '%Dim%'
 );
-EXEC sp_executesql @sql;
+EXEC sp_executesql @sqlProcedures;
+
+-- 5. DROP VISTAS (si existieran)
+DECLARE @sqlViews NVARCHAR(MAX) = N'';
+SELECT @sqlViews += 'DROP VIEW IF EXISTS LOSGDS.' + QUOTENAME(name) + ';' + CHAR(13)
+FROM sys.views
+WHERE SCHEMA_NAME(schema_id) = 'LOSGDS';
+EXEC sp_executesql @sqlViews;
+
+-- 6. DROP FUNCIONES escalares y de tabla
+DECLARE @sqlFuncs NVARCHAR(MAX) = N'';
+SELECT @sqlFuncs += 'DROP FUNCTION IF EXISTS LOSGDS.' + QUOTENAME(name) + ';' + CHAR(13)
+FROM sys.objects
+WHERE SCHEMA_NAME(schema_id) = 'LOSGDS' AND type IN ('FN', 'IF', 'TF');
+EXEC sp_executesql @sqlFuncs;
