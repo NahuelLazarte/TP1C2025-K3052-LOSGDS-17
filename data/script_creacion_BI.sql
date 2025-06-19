@@ -2,11 +2,66 @@ USE GD1C2025
 GO
 
 
+--DIMENSIONES
+--Creacion de las dimensiones
+CREATE TABLE LOSGDS.BI_Dim_Tiempo (
+    id_tiempo BIGINT IDENTITY PRIMARY KEY,
+    anio INT NOT NULL,
+	mes int NOT NULL,
+    cuatrimestre NVARCHAR(255) NOT NULL,
+)
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Ubicacion (
+    id_ubicacion BIGINT IDENTITY PRIMARY KEY,
+	id_provincia BIGINT NOT NULL,
+	id_localidad BIGINT NOT NULL,
+	nombre_provincia NVARCHAR(255) NOT NULL,
+	nombre_localidad NVARCHAR(255) NOT NULL
+)
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Rango_Etario_Cliente (
+    id_rango_etario BIGINT IDENTITY PRIMARY KEY,
+    rango_etario_inicio INT,
+    rango_etario_fin INT
+)
+GO
+
+
+
+CREATE TABLE LOSGDS.BI_Dim_Sucursal (
+    id_sucursal BIGINT IDENTITY PRIMARY KEY,
+    nro_sucursal BIGINT
+)
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Modelo_Sillon (
+    id_modelo_sillon BIGINT PRIMARY KEY,
+    nombre NVARCHAR(255),
+    descripcion NVARCHAR(255)
+);
+GO
 
 
 --- Creacion Tablas BI
 
-
+CREATE TABLE LOSGDS.BI_Hechos_Facturacion (
+    id_tiempo BIGINT NOT NULL,
+    id_ubicacion BIGINT NOT NULL,
+    id_sucursal BIGINT NOT NULL,
+    id_rango_etario BIGINT NOT NULL,
+    id_modelo_sillon BIGINT NOT NULL,
+	cantidad_facturas INT NOT NULL,
+    total DECIMAL(18,2) NOT NULL,
+    PRIMARY KEY (id_tiempo, id_ubicacion, id_sucursal, id_rango_etario, id_modelo_sillon),
+    FOREIGN KEY (id_tiempo) REFERENCES LOSGDS.BI_Dim_Tiempo(id_tiempo),
+    FOREIGN KEY (id_ubicacion) REFERENCES LOSGDS.BI_Dim_Ubicacion(id_ubicacion),
+    FOREIGN KEY (id_sucursal) REFERENCES LOSGDS.BI_Dim_Sucursal(id_sucursal),
+    FOREIGN KEY (id_rango_etario) REFERENCES LOSGDS.BI_Dim_Rango_Etario_Cliente(id_rango_etario),
+    FOREIGN KEY (id_modelo_sillon) REFERENCES LOSGDS.BI_Dim_Modelo_Sillon(id_modelo_sillon)
+);
+GO
 
 
 --Migración de las dimensiones
