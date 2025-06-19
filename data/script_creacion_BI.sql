@@ -2,110 +2,237 @@ USE GD1C2025
 GO
 
 
---DIMENSIONES
---Creacion de las dimensiones
-CREATE TABLE LOSGDS.BI_Dim_Tiempo (
-    tiempo_id BIGINT IDENTITY PRIMARY KEY,
-    anio INT NOT NULL,
-	mes int NOT NULL,
-    cuatrimestre NVARCHAR(255) NOT NULL,
-)
-GO
-
-CREATE TABLE LOSGDS.BI_Dim_Ubicacion (
-    ubicacion_id INT IDENTITY PRIMARY KEY,
-	provincia_id INT NOT NULL,
-	localidad_id INT NOT NULL,
-	nombre_provincia NVARCHAR(255) NOT NULL,
-	nombre_localidad NVARCHAR(255) NOT NULL
-)
-GO
-
-CREATE TABLE LOSGDS.BI_Dim_RangoEtario (
-    rango_id INT IDENTITY PRIMARY KEY,
-    rango_etario NVARCHAR(50) NOT NULL
-)
-GO
-
-
-CREATE TABLE LOSGDS.BI_Dim_TipoMaterial (
-    id_material BIGINT IDENTITY PRIMARY KEY,
-    tipo_material NVARCHAR(50) NOT NULL
-)
-GO
-
-
-
-CREATE TABLE LOSGDS.BI_Dim_Sucursal (
-    id_sucursal BIGINT IDENTITY PRIMARY KEY,
-    nro_sucursal BIGINT
-)
-GO
 
 
 --- Creacion Tablas BI
 
 
-CREATE TABLE LOSGDS.BI_Hechos_Compras (
-    id_tiempo BIGINT NOT NULL,
-	id_material BIGINT NOT NULL,
-	id_sucursal BIGINT NOT NULL,
-	importe_total DECIMAL(18,2) NOT NULL,
-	cantidad_total INT NOT NULL,
-	FOREIGN KEY (id_material) REFERENCES LOSGDS.BI_Dim_TipoMaterial(id_material),
-    FOREIGN KEY (id_tiempo) REFERENCES LOSGDS.BI_Dim_Tiempo(tiempo_id),
-	FOREIGN KEY (id_sucursal) REFERENCES LOSGDS.BI_Dim_Sucursal(id_sucursal),
-	PRIMARY KEY(id_tiempo,id_material ,id_sucursal)
-)
-GO
 
 
+--Migración de las dimensiones
 
-
--- Migracion BI_Hechos_Publicaciones
-
-CREATE PROCEDURE LOSGDS.MigrarHechosCompras
+CREATE PROCEDURE LOSGDS.MigrarDimSucursal
 AS
 BEGIN
-
-    INSERT INTO LOSGDS.BI_Hechos_Compras
-		SELECT
-			t.tiempo_id,
-			id_material,
-			id_sucursal,
-			SUM(c.total),
-			COUNT(*)
-		FROM LOSGDS.Compra c
-		JOIN LOSGDS.BI_Dim_Tiempo t ON YEAR(c.fecha) = t.anio AND MONTH(c.fecha) = mes
-		--JOIN LOSGDS.BI_Dim_TipoMaterial tm ON tm.id_material = c.
-		--GROUP BY subrubro_id, tiempo_id, marca_id
+    INSERT INTO LOSGDS.BI_Dim_Sucursal
+    SELECT DISTINCT 
+        s.nro_sucursal
+	FROM LOSGDS.Sucursal s
 END
 GO
 
 
-
-
-CREATE PROCEDURE LOSGDS.MigrarHechosPublicaciones
+CREATE PROCEDURE LOSGDS.MigrarDimUbicacion
 AS
 BEGIN
+    
+INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provincia, nombre_localidad)
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Proveedor p
+    JOIN LOSGDS.Direccion d ON d.id_direccion = p.proveedor_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
 
-    INSERT INTO HOBBITS11.BI_Hechos_Publicaciones
+    UNION
 
-	SELECT
-	subrubro_id,
-	tiempo_id,
-	marca_id,
-	SUM(publ_stock),
-	SUM(DATEDIFF(DAY, publ_fecha_inicio, publ_fecha_fin)),
-	count(*)
-	FROM HOBBITS11.Publicacion
-	JOIN HOBBITS11.Producto ON prod_id = publ_producto
-	JOIN HOBBITS11.BI_Dim_RubroSubRubro ON prod_subr = subrubro_id
-	JOIN HOBBITS11.BI_Dim_Tiempo ON YEAR(publ_fecha_inicio) = anio AND MONTH(publ_fecha_inicio) = mes
-	JOIN HOBBITS11.BI_Dim_Marca on prod_marca = marca_id
-	GROUP BY subrubro_id, tiempo_id, marca_id
-	
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Sucursal s
+    JOIN LOSGDS.Direccion d ON d.id_direccion = s.sucursal_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+
+    UNION
+
+    SELECT DISTINCT 
+        pr.id_provincia,
+        l.id_localidad,
+        pr.nombre,
+        l.nombre
+    FROM LOSGDS.Cliente c
+    JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
 END
 GO
 
 
+DROP PROCEDURE IF EXISTS LOSGDS.CrearRangosEtarios;
+GO
+
+CREATE PROCEDURE LOSGDS.CrearRangosEtarios
+AS
+BEGIN
+	BEGIN TRANSACTION;
+		INSERT INTO LOSGDS.BI_Dim_Rango_Etario_Cliente(rango_etario_inicio,rango_etario_fin)
+        VALUES
+		(NULL,25),
+		(25,35),
+		(35,50),
+		(50,null)
+	COMMIT TRANSACTION;
+END
+GO
+
+CREATE PROCEDURE LOSGDS.MigrarDimTiempo
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_Tiempo (anio, cuatrimestre, mes)
+    SELECT DISTINCT 
+        YEAR(fecha),
+        CASE 
+            WHEN MONTH(fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+            ELSE 'Tercer Cuatrimestre'
+        END,
+        MONTH(fecha)
+    FROM (
+        SELECT fecha FROM LOSGDS.Factura
+        UNION
+        SELECT fecha FROM LOSGDS.Compra
+        UNION
+        SELECT fecha FROM LOSGDS.Pedido
+        UNION
+        SELECT fecha_programada FROM LOSGDS.Envio
+    ) AS fechas
+END
+GO
+
+
+CREATE PROCEDURE LOSGDS.MigrarDimModeloSillon
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_Modelo_Sillon (id_modelo_sillon, nombre, descripcion)
+    SELECT 
+        cod_modelo,
+        modelo,
+        descripcion
+    FROM LOSGDS.Modelo
+END
+GO
+
+-- Migracion de los Hechos
+
+CREATE PROCEDURE LOSGDS.MigrarHechosFacturacion
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Hechos_Facturacion (
+        id_tiempo,
+        id_ubicacion,
+        id_sucursal,
+        id_rango_etario,
+        id_modelo_sillon,
+		cantidad_facturas,
+        total
+    )
+    SELECT 
+        t.id_tiempo,
+        u.id_ubicacion,
+        s.id_sucursal,
+        r.id_rango_etario,
+        mo.cod_modelo,
+		COUNT(DISTINCT f.id_factura) AS cantidad_facturas,
+        SUM(df.subtotal) AS total
+    FROM LOSGDS.Detalle_Factura df
+    JOIN LOSGDS.Factura f ON f.id_factura = df.det_fact_factura
+    JOIN LOSGDS.Detalle_Pedido dp ON dp.id_det_pedido = df.det_fact_det_pedido
+    JOIN LOSGDS.Pedido p ON p.id_pedido = dp.det_ped_pedido
+    JOIN LOSGDS.Cliente c ON c.id_cliente = p.pedido_cliente
+    JOIN LOSGDS.Sillon si ON si.cod_sillon = dp.det_ped_sillon
+    JOIN LOSGDS.Modelo mo ON mo.cod_modelo = si.sillon_modelo
+    JOIN LOSGDS.Sucursal s ON s.id_sucursal = f.fact_sucursal
+    JOIN LOSGDS.Direccion d ON d.id_direccion = s.sucursal_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+    JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_localidad = l.id_localidad AND u.id_provincia = pr.id_provincia
+    JOIN LOSGDS.BI_Dim_Tiempo t ON t.anio = YEAR(f.fecha) AND t.mes = MONTH(f.fecha)
+    JOIN LOSGDS.BI_Dim_Rango_Etario_Cliente r 
+    ON (
+            (r.rango_etario_inicio IS NULL AND DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) < r.rango_etario_fin) OR
+            (r.rango_etario_fin IS NULL AND DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) >= r.rango_etario_inicio) OR
+            (DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) >= r.rango_etario_inicio AND 
+            DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) < r.rango_etario_fin)
+        )
+    GROUP BY 
+        t.id_tiempo,
+        u.id_ubicacion,
+        s.id_sucursal,
+        r.id_rango_etario,
+        mo.cod_modelo
+END
+GO
+
+
+BEGIN TRANSACTION
+	EXEC LOSGDS.MigrarDimTiempo;
+	EXEC LOSGDS.MigrarDimUbicacion;
+	EXEC LOSGDS.MigrarDimSucursal;
+	EXEC LOSGDS.CrearRangosEtarios;
+	EXEC LOSGDS.MigrarDimModeloSillon;
+	EXEC LOSGDS.MigrarHechosFacturacion;
+COMMIT TRANSACTION
+GO
+
+-- VISTAS
+
+-- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
+CREATE VIEW LOSGDS.BI_Vista_FacturaPromedioMensual AS
+    SELECT 
+    t.anio,
+    t.cuatrimestre,
+    u.nombre_provincia,
+    SUM(hf.total) AS total_facturado,
+    SUM(hf.cantidad_facturas) AS total_facturas,
+    SUM(hf.total) / 4.0 AS promedio_mensual
+    FROM LOSGDS.BI_Hechos_Facturacion hf
+    JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hf.id_tiempo
+    JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_ubicacion = hf.id_ubicacion
+    GROUP BY t.anio, t.cuatrimestre, u.nombre_provincia;
+GO
+
+-- 3. Rendimiento de Modelos 
+CREATE VIEW LOSGDS.BI_Vista_RendimientoModelos AS
+    WITH Top3Modelos AS (
+        SELECT 
+            t.anio,
+            t.cuatrimestre,
+            u.nombre_localidad,
+            r.id_rango_etario,
+            r.rango_etario_inicio,
+            r.rango_etario_fin,
+            m.nombre AS modelo_nombre,
+            SUM(hf.total) AS total_facturado,
+            ROW_NUMBER() OVER (
+                PARTITION BY t.anio, t.cuatrimestre, u.nombre_localidad, r.id_rango_etario
+                ORDER BY SUM(hf.total) DESC
+            ) AS posicion
+        FROM LOSGDS.BI_Hechos_Facturacion hf
+        JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hf.id_tiempo
+        JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_ubicacion = hf.id_ubicacion
+        JOIN LOSGDS.BI_Dim_Rango_Etario_Cliente r ON r.id_rango_etario = hf.id_rango_etario
+        JOIN LOSGDS.BI_Dim_Modelo_Sillon m ON m.id_modelo_sillon = hf.id_modelo_sillon
+        GROUP BY 
+            t.anio, t.cuatrimestre, u.nombre_localidad,
+            r.id_rango_etario, r.rango_etario_inicio, r.rango_etario_fin,
+            m.nombre
+        )
+    SELECT * FROM Top3Modelos WHERE posicion <= 3;
+GO
+
+
+
+
+
+DROP PROCEDURE LOSGDS.MigrarDimTiempo;
+DROP PROCEDURE LOSGDS.MigrarDimUbicacion;
+DROP PROCEDURE LOSGDS.MigrarDimSucursal;
+DROP PROCEDURE LOSGDS.CrearRangosEtarios;
+DROP PROCEDURE LOSGDS.MigrarDimModeloSillon;
+DROP PROCEDURE LOSGDS.MigrarHechosFacturacion;
