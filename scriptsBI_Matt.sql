@@ -77,7 +77,7 @@ END
 GO
 
 
-CREATE PROCEDURE MigrarDimUbicacion
+CREATE PROCEDURE LOSGDS.MigrarDimUbicacion
 AS
 BEGIN
     
@@ -218,3 +218,20 @@ BEGIN
         mo.cod_modelo
 END
 GO
+
+
+BEGIN TRANSACTION
+	EXEC LOSGDS.MigrarDimTiempo;
+	EXEC LOSGDS.MigrarDimUbicacion;
+	EXEC LOSGDS.MigrarDimSucursal;
+	EXEC LOSGDS.CrearRangosEtarios;
+	EXEC LOSGDS.MigrarDimModeloSillon;
+	EXEC LOSGDS.MigrarHechosFacturacion;
+COMMIT TRANSACTION
+
+DROP PROCEDURE LOSGDS.MigrarDimTiempo;
+DROP PROCEDURE LOSGDS.MigrarDimUbicacion;
+DROP PROCEDURE LOSGDS.MigrarDimSucursal;
+DROP PROCEDURE LOSGDS.CrearRangosEtarios;
+DROP PROCEDURE LOSGDS.MigrarDimModeloSillon;
+DROP PROCEDURE LOSGDS.MigrarHechosFacturacion;
