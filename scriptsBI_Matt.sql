@@ -209,7 +209,12 @@ BEGIN
     JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_localidad = l.id_localidad AND u.id_provincia = pr.id_provincia
     JOIN LOSGDS.BI_Dim_Tiempo t ON t.anio = YEAR(f.fecha) AND t.mes = MONTH(f.fecha)
     JOIN LOSGDS.BI_Dim_Rango_Etario_Cliente r 
-        ON DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) BETWEEN r.rango_etario_inicio AND r.rango_etario_fin
+    ON (
+            (r.rango_etario_inicio IS NULL AND DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) < r.rango_etario_fin) OR
+            (r.rango_etario_fin IS NULL AND DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) >= r.rango_etario_inicio) OR
+            (DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) >= r.rango_etario_inicio AND 
+            DATEDIFF(YEAR, c.fecha_nacimiento, f.fecha) < r.rango_etario_fin)
+        )
     GROUP BY 
         t.id_tiempo,
         u.id_ubicacion,
@@ -228,6 +233,57 @@ BEGIN TRANSACTION
 	EXEC LOSGDS.MigrarDimModeloSillon;
 	EXEC LOSGDS.MigrarHechosFacturacion;
 COMMIT TRANSACTION
+GO
+
+-- VISTAS
+
+-- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
+CREATE VIEW LOSGDS.BI_Vista_FacturaPromedioMensual AS
+    SELECT 
+    t.anio,
+    t.cuatrimestre,
+    u.nombre_provincia,
+    SUM(hf.total) AS total_facturado,
+    SUM(hf.cantidad_facturas) AS total_facturas,
+    SUM(hf.total) / 4.0 AS promedio_mensual
+    FROM LOSGDS.BI_Hechos_Facturacion hf
+    JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hf.id_tiempo
+    JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_ubicacion = hf.id_ubicacion
+    GROUP BY t.anio, t.cuatrimestre, u.nombre_provincia;
+GO
+
+-- 3. Rendimiento de Modelos 
+CREATE VIEW LOSGDS.BI_Vista_RendimientoModelos AS
+    WITH Top3Modelos AS (
+        SELECT 
+            t.anio,
+            t.cuatrimestre,
+            u.nombre_localidad,
+            r.id_rango_etario,
+            r.rango_etario_inicio,
+            r.rango_etario_fin,
+            m.nombre AS modelo_nombre,
+            SUM(hf.total) AS total_facturado,
+            ROW_NUMBER() OVER (
+                PARTITION BY t.anio, t.cuatrimestre, u.nombre_localidad, r.id_rango_etario
+                ORDER BY SUM(hf.total) DESC
+            ) AS posicion
+        FROM LOSGDS.BI_Hechos_Facturacion hf
+        JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hf.id_tiempo
+        JOIN LOSGDS.BI_Dim_Ubicacion u ON u.id_ubicacion = hf.id_ubicacion
+        JOIN LOSGDS.BI_Dim_Rango_Etario_Cliente r ON r.id_rango_etario = hf.id_rango_etario
+        JOIN LOSGDS.BI_Dim_Modelo_Sillon m ON m.id_modelo_sillon = hf.id_modelo_sillon
+        GROUP BY 
+            t.anio, t.cuatrimestre, u.nombre_localidad,
+            r.id_rango_etario, r.rango_etario_inicio, r.rango_etario_fin,
+            m.nombre
+        )
+    SELECT * FROM Top3Modelos WHERE posicion <= 3;
+GO
+
+
+
+
 
 DROP PROCEDURE LOSGDS.MigrarDimTiempo;
 DROP PROCEDURE LOSGDS.MigrarDimUbicacion;
