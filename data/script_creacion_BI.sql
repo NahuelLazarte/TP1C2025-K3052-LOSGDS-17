@@ -1,50 +1,139 @@
 USE GD1C2025
 GO
 
+/****************************************
+ 1) DROPS TABLES Y VIEWS (limpieza inicial)
+****************************************/
 
---DIMENSIONES
---Creacion de las dimensiones
+IF OBJECT_ID('LOSGDS.BI_Vista_FacturaPromedioMensual', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_FacturaPromedioMensual;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_RendimientoModelos', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_RendimientoModelos;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_Volumen_Pedidos', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_Volumen_Pedidos;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_Conversion_Pedidos', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_Conversion_Pedidos;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Hechos_Pedidos',  'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Pedidos;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Compras',  'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Compras;
+IF OBJECT_ID('LOSGDS.BI_Hechos_Facturacion', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Facturacion;
+
+IF OBJECT_ID('LOSGDS.BI_Dim_Turno_Ventas', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Turno_Ventas;
+IF OBJECT_ID('LOSGDS.BI_Dim_Sucursal',    'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Sucursal;
+IF OBJECT_ID('LOSGDS.BI_Dim_Estado_Pedido','U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Estado_Pedido;
+IF OBJECT_ID('LOSGDS.BI_Dim_Tiempo',       'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Tiempo;
+IF OBJECT_ID('LOSGDS.BI_Dim_Ubicacion',       'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Ubicacion;
+IF OBJECT_ID('LOSGDS.BI_Dim_Rango_Etario_Cliente', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Rango_Etario_Cliente;
+IF OBJECT_ID('LOSGDS.BI_Dim_Modelo_Sillon', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Modelo_Sillon;
+GO
+
+/****************************************
+ 2) CREATE TABLE Dimensiones
+****************************************/
+
 CREATE TABLE LOSGDS.BI_Dim_Tiempo (
-    id_tiempo BIGINT IDENTITY PRIMARY KEY,
-    anio INT NOT NULL,
-	mes int NOT NULL,
+    id_tiempo    BIGINT      IDENTITY,
+    anio         INT         NOT NULL,
+    mes          INT         NOT NULL,
     cuatrimestre NVARCHAR(255) NOT NULL,
-)
+    CONSTRAINT PK_BI_Dim_Tiempo PRIMARY KEY CLUSTERED (id_tiempo)
+);
 GO
 
 CREATE TABLE LOSGDS.BI_Dim_Ubicacion (
-    id_ubicacion BIGINT IDENTITY PRIMARY KEY,
+    id_ubicacion BIGINT IDENTITY,
 	id_provincia BIGINT NOT NULL,
 	id_localidad BIGINT NOT NULL,
 	nombre_provincia NVARCHAR(255) NOT NULL,
-	nombre_localidad NVARCHAR(255) NOT NULL
-)
+	nombre_localidad NVARCHAR(255) NOT NULL,
+	CONSTRAINT PK_BI_Dim_Ubicacion PRIMARY KEY CLUSTERED (id_ubicacion)
+);
 GO
 
 CREATE TABLE LOSGDS.BI_Dim_Rango_Etario_Cliente (
-    id_rango_etario BIGINT IDENTITY PRIMARY KEY,
+    id_rango_etario 	BIGINT IDENTITY,
     rango_etario_inicio INT,
-    rango_etario_fin INT
-)
-GO
-
-
-
-CREATE TABLE LOSGDS.BI_Dim_Sucursal (
-    id_sucursal BIGINT IDENTITY PRIMARY KEY,
-    nro_sucursal BIGINT
-)
-GO
-
-CREATE TABLE LOSGDS.BI_Dim_Modelo_Sillon (
-    id_modelo_sillon BIGINT PRIMARY KEY,
-    nombre NVARCHAR(255),
-    descripcion NVARCHAR(255)
+    rango_etario_fin 	INT,
+	CONSTRAINT PK_BI_Dim_Rango_Etario_Cliente PRIMARY KEY CLUSTERED (id_rango_etario)
 );
 GO
 
 
---- Creacion Tablas BI
+CREATE TABLE LOSGDS.BI_Dim_Sucursal (
+    id_sucursal  BIGINT      IDENTITY,
+    nro_sucursal BIGINT      NOT NULL,
+    CONSTRAINT PK_BI_Dim_Sucursal PRIMARY KEY CLUSTERED (id_sucursal)
+);
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Modelo_Sillon (
+    id_modelo_sillon BIGINT NOT NULL,
+    nombre 			 NVARCHAR(255),
+    descripcion 	 NVARCHAR(255),
+	CONSTRAINT PK_BI_Dim_Modelo_Sillon PRIMARY KEY CLUSTERED (id_modelo_sillon)
+);
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Estado_Pedido (
+    id_estado_pedido BIGINT      IDENTITY,
+    estado_pedido    NVARCHAR(255) NOT NULL,
+    CONSTRAINT PK_BI_Dim_Estado_Pedido PRIMARY KEY CLUSTERED (id_estado_pedido)
+);
+GO
+
+CREATE TABLE LOSGDS.BI_Dim_Turno_Ventas (
+    id_turno_ventas BIGINT      IDENTITY,
+    turno_ventas    NVARCHAR(255) NOT NULL,
+    CONSTRAINT PK_BI_Dim_Turno_Ventas PRIMARY KEY CLUSTERED (id_turno_ventas)
+);
+GO
+
+
+/****************************************
+ 3) CREATE TABLE Hechos
+****************************************/
+
+
+CREATE TABLE LOSGDS.BI_Hechos_Pedidos (
+    id_tiempo                 BIGINT      NOT NULL,
+    id_estado_pedido          BIGINT      NOT NULL,
+    id_sucursal               BIGINT      NOT NULL,
+    id_turno_ventas           BIGINT      NOT NULL,
+    cantidad                  INT         NOT NULL,
+    dias_promedio_facturacion DECIMAL(18,2) NOT NULL,
+    CONSTRAINT PK_BI_Hechos_Pedidos PRIMARY KEY CLUSTERED (
+        id_tiempo,
+        id_estado_pedido,
+        id_sucursal,
+        id_turno_ventas
+    ),
+    CONSTRAINT FK_HP_Tiempo        FOREIGN KEY(id_tiempo)        REFERENCES LOSGDS.BI_Dim_Tiempo(id_tiempo),
+    CONSTRAINT FK_HP_EstadoPedido FOREIGN KEY(id_estado_pedido) REFERENCES LOSGDS.BI_Dim_Estado_Pedido(id_estado_pedido),
+    CONSTRAINT FK_HP_Sucursal     FOREIGN KEY(id_sucursal)      REFERENCES LOSGDS.BI_Dim_Sucursal(id_sucursal),
+    CONSTRAINT FK_HP_TurnoVenta   FOREIGN KEY(id_turno_ventas)  REFERENCES LOSGDS.BI_Dim_Turno_Ventas(id_turno_ventas)
+);
+GO
+
+CREATE TABLE LOSGDS.BI_Hechos_Compras (
+    id_tiempo   BIGINT      NOT NULL,
+    id_sucursal BIGINT      NOT NULL,
+    monto_compra DECIMAL(18,2) NOT NULL,
+    CONSTRAINT PK_BI_Hechos_Compras PRIMARY KEY CLUSTERED (id_tiempo, id_sucursal),
+    CONSTRAINT FK_HC_Tiempo    FOREIGN KEY(id_tiempo)   REFERENCES LOSGDS.BI_Dim_Tiempo(id_tiempo),
+    CONSTRAINT FK_HC_Sucursal  FOREIGN KEY(id_sucursal) REFERENCES LOSGDS.BI_Dim_Sucursal(id_sucursal)
+);
+GO
 
 CREATE TABLE LOSGDS.BI_Hechos_Facturacion (
     id_tiempo BIGINT NOT NULL,
@@ -64,8 +153,11 @@ CREATE TABLE LOSGDS.BI_Hechos_Facturacion (
 GO
 
 
---Migración de las dimensiones
+/****************************************
+ 4) CREATE PROCEDURES (migraciones dimensiones)
+****************************************/
 
+-- 4.1 Migrar Dim_Sucursal
 CREATE PROCEDURE LOSGDS.MigrarDimSucursal
 AS
 BEGIN
@@ -76,7 +168,7 @@ BEGIN
 END
 GO
 
-
+-- 4.2 Migrar Dim_Ubicacion
 CREATE PROCEDURE LOSGDS.MigrarDimUbicacion
 AS
 BEGIN
@@ -118,7 +210,7 @@ INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provinci
 END
 GO
 
-
+-- 4.3 Migrar Dim_Rango_Etario_Cliente
 DROP PROCEDURE IF EXISTS LOSGDS.CrearRangosEtarios;
 GO
 
@@ -136,6 +228,7 @@ BEGIN
 END
 GO
 
+-- 4.4 Migrar Dim_Tiempo
 CREATE PROCEDURE LOSGDS.MigrarDimTiempo
 AS
 BEGIN
@@ -160,7 +253,7 @@ BEGIN
 END
 GO
 
-
+-- 4.5 Migrar Dim_Modelo_Sillon
 CREATE PROCEDURE LOSGDS.MigrarDimModeloSillon
 AS
 BEGIN
@@ -173,8 +266,37 @@ BEGIN
 END
 GO
 
--- Migracion de los Hechos
+-- 4.6 Migrar Dim_Estado_Pedido
+CREATE PROCEDURE LOSGDS.MigrarDimEstadoPedido
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_Estado_Pedido (estado_pedido)
+    SELECT DISTINCT p.estado
+    FROM LOSGDS.Pedido p
+    WHERE p.estado IS NOT NULL;
+END;
+GO
 
+-- 4.7 Migrar Dim_Turno_Ventas
+CREATE PROCEDURE LOSGDS.MigrarDimTurnoVentas
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Dim_Turno_Ventas (turno_ventas)
+    SELECT DISTINCT 
+        CASE 
+            WHEN CAST(FORMAT(p.fecha, 'HH:mm') AS TIME) BETWEEN '08:00' AND '13:59' THEN '08:00 - 14:00'
+            ELSE '14:00 - 20:00'
+        END
+    FROM LOSGDS.Pedido p
+    WHERE p.fecha IS NOT NULL;
+END;
+GO
+
+/****************************************
+ 5) CREATE PROCEDURES (migraciones hechos)
+****************************************/
+
+-- 5.1 Migrar Hechos_Facturacion
 CREATE PROCEDURE LOSGDS.MigrarHechosFacturacion
 AS
 BEGIN
@@ -224,18 +346,71 @@ BEGIN
 END
 GO
 
+-- 5.2 Migrar Hechos_Pedidos
+CREATE  PROCEDURE LOSGDS.MigrarHechosPedidos
+AS
+BEGIN
+    INSERT INTO LOSGDS.BI_Hechos_Pedidos (
+        id_tiempo,
+        id_estado_pedido,
+        id_sucursal,
+        id_turno_ventas,
+        cantidad,
+        dias_promedio_facturacion
+    )
+    SELECT 
+        dt.id_tiempo,
+        dep.id_estado_pedido,
+        ds.id_sucursal,
+        dtv.id_turno_ventas,
+        COUNT(DISTINCT p.id_pedido) AS cantidad_pedidos,
+    ISNULL(AVG(DATEDIFF(DAY, p.fecha, f.fecha)), 0)
+
+    FROM LOSGDS.Pedido p
+    JOIN LOSGDS.Detalle_Pedido dp           ON dp.det_ped_pedido = p.id_pedido
+    JOIN LOSGDS.Detalle_Factura df          ON df.det_fact_det_pedido = dp.id_det_pedido
+    JOIN LOSGDS.Factura f                   ON f.id_factura = df.det_fact_factura
+
+    JOIN LOSGDS.Sucursal s                  ON p.pedido_sucursal = s.id_sucursal
+    JOIN LOSGDS.BI_Dim_Sucursal ds          ON ds.nro_sucursal = s.nro_sucursal
+    JOIN LOSGDS.BI_Dim_Estado_Pedido dep    ON dep.estado_pedido = p.estado
+    JOIN LOSGDS.BI_Dim_Tiempo dt            ON dt.anio = YEAR(p.fecha) AND dt.mes = MONTH(p.fecha)
+    JOIN LOSGDS.BI_Dim_Turno_Ventas dtv     ON dtv.turno_ventas = 
+        CASE 
+            WHEN CAST(FORMAT(p.fecha, 'HH:mm') AS TIME) BETWEEN '08:00' AND '13:59'
+                THEN '08:00 - 14:00'
+            ELSE '14:00 - 20:00'
+        END
+	WHERE p.fecha IS NOT NULL
+    GROUP BY 
+        dt.id_tiempo,
+        dep.id_estado_pedido,
+        ds.id_sucursal,
+        dtv.id_turno_ventas;
+END;
+GO
+
+/****************************************
+ 6) EJECUCIÓN de migraciones
+****************************************/
 
 BEGIN TRANSACTION
 	EXEC LOSGDS.MigrarDimTiempo;
 	EXEC LOSGDS.MigrarDimUbicacion;
 	EXEC LOSGDS.MigrarDimSucursal;
+	EXEC LOSGDS.MigrarDimEstadoPedido;
+    EXEC LOSGDS.MigrarDimTurnoVentas;
 	EXEC LOSGDS.CrearRangosEtarios;
 	EXEC LOSGDS.MigrarDimModeloSillon;
+
 	EXEC LOSGDS.MigrarHechosFacturacion;
+    EXEC LOSGDS.MigrarHechosPedidos;
 COMMIT TRANSACTION
 GO
 
--- VISTAS
+/****************************************
+ 7) CREATE VIEWS (indicadores)
+****************************************/
 
 -- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
 CREATE VIEW LOSGDS.BI_Vista_FacturaPromedioMensual AS
@@ -281,8 +456,68 @@ CREATE VIEW LOSGDS.BI_Vista_RendimientoModelos AS
     SELECT * FROM Top3Modelos WHERE posicion <= 3;
 GO
 
+-- 4. Volumen de pedidos
+CREATE VIEW LOSGDS.BI_Vista_Volumen_Pedidos AS
+SELECT
+    t.anio,
+    t.mes,
+    s.nro_sucursal,
+    v.turno_ventas,
+    SUM(h.cantidad) AS volumen_pedidos
+FROM LOSGDS.BI_Hechos_Pedidos h
+JOIN LOSGDS.BI_Dim_Tiempo t         ON h.id_tiempo     = t.id_tiempo
+JOIN LOSGDS.BI_Dim_Sucursal s       ON h.id_sucursal   = s.id_sucursal
+JOIN LOSGDS.BI_Dim_Turno_Ventas v   ON h.id_turno_ventas = v.id_turno_ventas
+GROUP BY t.anio, t.mes, s.nro_sucursal, v.turno_ventas;
+GO
+
+-- 5. Conversión de pedidos
+CREATE VIEW LOSGDS.BI_Vista_Conversion_Pedidos AS
+SELECT 
+    t.anio,
+    t.cuatrimestre,
+    s.nro_sucursal,
+    e.estado_pedido,
+    SUM(h.cantidad) AS cantidad_pedidos,
+    CAST(
+        SUM(h.cantidad) * 100.0 /
+        NULLIF((
+            SELECT SUM(h2.cantidad)
+            FROM LOSGDS.BI_Hechos_Pedidos h2
+            JOIN LOSGDS.BI_Dim_Tiempo t2 ON h2.id_tiempo = t2.id_tiempo
+            WHERE t2.anio = t.anio
+              AND t2.cuatrimestre = t.cuatrimestre
+              AND h2.id_sucursal = s.id_sucursal
+        ), 0)
+    AS DECIMAL(5,2)) AS porcentaje
+FROM LOSGDS.BI_Hechos_Pedidos h
+JOIN LOSGDS.BI_Dim_Tiempo         t ON h.id_tiempo = t.id_tiempo
+JOIN LOSGDS.BI_Dim_Sucursal       s ON h.id_sucursal = s.id_sucursal
+JOIN LOSGDS.BI_Dim_Estado_Pedido  e ON h.id_estado_pedido = e.id_estado_pedido
+GROUP BY t.anio, t.cuatrimestre, s.nro_sucursal, s.id_sucursal, e.estado_pedido;
+GO
+
+-- 6. Tiempo promedio fabricación
+CREATE VIEW LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion AS
+SELECT 
+    t.anio,
+    t.cuatrimestre,
+    s.nro_sucursal,
+    ISNULL(AVG(CASE 
+                  WHEN h.dias_promedio_facturacion >= 0 
+                  THEN h.dias_promedio_facturacion 
+                  ELSE NULL 
+              END), 0) AS promedio_dias
+FROM LOSGDS.BI_Hechos_Pedidos h
+JOIN LOSGDS.BI_Dim_Tiempo    t ON h.id_tiempo   = t.id_tiempo
+JOIN LOSGDS.BI_Dim_Sucursal  s ON h.id_sucursal = s.id_sucursal
+GROUP BY t.anio, t.cuatrimestre, s.nro_sucursal;
+GO
 
 
+/****************************************
+ 8) DROP PROCEDURES (limpieza final)
+****************************************/
 
 
 DROP PROCEDURE LOSGDS.MigrarDimTiempo;
@@ -290,4 +525,33 @@ DROP PROCEDURE LOSGDS.MigrarDimUbicacion;
 DROP PROCEDURE LOSGDS.MigrarDimSucursal;
 DROP PROCEDURE LOSGDS.CrearRangosEtarios;
 DROP PROCEDURE LOSGDS.MigrarDimModeloSillon;
+DROP PROCEDURE LOSGDS.MigrarDimEstadoPedido;
+DROP PROCEDURE LOSGDS.MigrarDimTurnoVentas;
+
 DROP PROCEDURE LOSGDS.MigrarHechosFacturacion;
+DROP PROCEDURE LOSGDS.MigrarHechosPedidos;
+GO
+
+
+/*
+(19 rows affected)
+
+(2 rows affected)
+
+(9 rows affected)
+
+(2 rows affected)
+
+(678 rows affected)
+-- Volumen de pedidos
+SELECT TOP 10 * FROM LOSGDS.BI_Vista_Volumen_Pedidos;
+
+-- Conversión de pedidos
+SELECT TOP 10 * FROM LOSGDS.BI_Vista_Conversion_Pedidos;
+
+-- Tiempo promedio de fabricación
+SELECT TOP 10 * FROM LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion;
+
+select distinct Sucursal_NroSucursal,Factura_Fecha,Pedido_Fecha from gd_esquema.Maestra
+where Sucursal_NroSucursal = '202'
+*/
