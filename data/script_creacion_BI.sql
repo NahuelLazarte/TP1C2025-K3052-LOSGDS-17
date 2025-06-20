@@ -33,6 +33,22 @@ IF OBJECT_ID('LOSGDS.BI_Vista_ComprasTotal', 'V') IS NOT NULL
 	DROP VIEW LOSGDS.BI_Vista_ComprasTotal;
 GO
 
+IF OBJECT_ID('LOSGDS.BI_Vista_Rendimiento_Modelos', 'V') IS NOT NULL
+	DROP VIEW LOSGDS.BI_Vista_Rendimiento_Modelos;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_CumplimientoEnvios', 'V') IS NOT NULL
+	DROP VIEW LOSGDS.BI_Vista_CumplimientoEnvios;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_LocalidadesMayorCostoEnvio', 'V') IS NOT NULL
+	DROP VIEW LOSGDS.BI_Vista_LocalidadesMayorCostoEnvio;
+GO
+
+IF OBJECT_ID('LOSGDS.BI_Vista_Ganancias', 'V') IS NOT NULL
+	DROP VIEW LOSGDS.BI_Vista_Ganancias;
+GO
+
 IF OBJECT_ID('LOSGDS.BI_Hechos_Pedidos',  'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Pedidos;
 IF OBJECT_ID('LOSGDS.BI_Hechos_Compras',  'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Compras;
 IF OBJECT_ID('LOSGDS.BI_Hechos_Facturacion', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Facturacion;
@@ -574,6 +590,19 @@ GO
  7) CREATE VIEWS (indicadores)
 ****************************************/
 
+-- 1. Ganancias (Por mes por sucursal) [Total de ingresos (facturación) - total de egresos (compras)]
+CREATE VIEW LOSGDS.BI_Vista_Ganancias AS
+	SELECT
+	t.mes,
+	s.id_sucursal,
+	SUM(hf.total) - SUM(hc.importe_total) AS ganancias_mesuales
+	FROM LOSGDS.BI_Hechos_Compras hc 
+	JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hc.id_tiempo
+	JOIN LOSGDS.BI_Dim_Sucursal s ON s.id_sucursal = hc.id_sucursal
+	JOIN LOSGDS.BI_Hechos_Facturacion hf ON hf.id_tiempo = t.id_tiempo AND hf.id_sucursal = s.id_sucursal
+	GROUP BY t.mes, s.id_sucursal
+GO
+
 -- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
 CREATE VIEW LOSGDS.BI_Vista_Factura_Promedio_Mensual AS
     SELECT 
@@ -719,6 +748,7 @@ CREATE VIEW LOSGDS.BI_Vista_CumplimientoEnvios AS
 	ON dt.id_tiempo = he.id_tiempo
 	GROUP BY dt.mes 
 GO
+
 -- 10. Localidades que pagan mayor costo de envío
 CREATE VIEW LOSGDS.BI_Vista_LocalidadesMayorCostoEnvio AS
 	SELECT TOP 3
@@ -751,30 +781,3 @@ DROP PROCEDURE LOSGDS.MigrarHechosFacturacion;
 DROP PROCEDURE LOSGDS.MigrarHechosPedidos;
 DROP PROCEDURE LOSGDS.MigrarHechosEnvios;
 GO
-
-
--- El script tarda 2:35 en correr
-
-/*
-
-(19 rows affected)
-
-(2 rows affected)
-
-(9 rows affected)
-
-(2 rows affected)
-
-(678 rows affected)
--- Volumen de pedidos
-SELECT TOP 10 * FROM LOSGDS.BI_Vista_Volumen_Pedidos;
-
--- Conversión de pedidos
-SELECT TOP 10 * FROM LOSGDS.BI_Vista_Conversion_Pedidos;
-
--- Tiempo promedio de fabricación
-SELECT TOP 10 * FROM LOSGDS.BI_Vista_Tiempo_Promedio_Fabricacion;
-
-select distinct Sucursal_NroSucursal,Factura_Fecha,Pedido_Fecha from gd_esquema.Maestra
-where Sucursal_NroSucursal = '202'
-*/
