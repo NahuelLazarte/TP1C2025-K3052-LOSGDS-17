@@ -5,12 +5,12 @@ GO
  1) DROPS TABLES Y VIEWS (limpieza inicial)
 ****************************************/
 
-IF OBJECT_ID('LOSGDS.BI_Vista_FacturaPromedioMensual', 'V') IS NOT NULL
-    DROP VIEW LOSGDS.BI_Vista_FacturaPromedioMensual;
+IF OBJECT_ID('LOSGDS.BI_Vista_Factura_Promedio_Mensual', 'V') IS NOT NULL
+    DROP VIEW LOSGDS.BI_Vista_Factura_Promedio_Mensual;
 GO
 
-IF OBJECT_ID('LOSGDS.BI_Vista_RendimientoModelos', 'V') IS NOT NULL
-    DROP VIEW LOSGDS.BI_Vista_RendimientoModelos;
+IF OBJECT_ID('LOSGDS._Rendimiento_Modelos', 'V') IS NOT NULL
+    DROP VIEW LOSGDS._Rendimiento_Modelos;
 GO
 
 IF OBJECT_ID('LOSGDS.BI_Vista_Volumen_Pedidos', 'V') IS NOT NULL
@@ -413,7 +413,7 @@ GO
 ****************************************/
 
 -- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
-CREATE VIEW LOSGDS.BI_Vista_FacturaPromedioMensual AS
+CREATE VIEW LOSGDS.BI_Vista_Factura_Promedio_Mensual AS
     SELECT 
     t.anio,
     t.cuatrimestre,
@@ -428,7 +428,7 @@ CREATE VIEW LOSGDS.BI_Vista_FacturaPromedioMensual AS
 GO
 
 -- 3. Rendimiento de Modelos 
-CREATE VIEW LOSGDS.BI_Vista_RendimientoModelos AS
+CREATE VIEW LOSGDS.BI_Vista_Rendimiento_Modelos AS
     WITH Top3Modelos AS (
         SELECT 
             t.anio,
