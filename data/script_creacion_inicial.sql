@@ -501,7 +501,7 @@ BEGIN
         m.Detalle_Pedido_SubTotal          
     FROM GD1C2025.gd_esquema.Maestra m
 	JOIN LOSGDS.Pedido p ON p.nro_pedido = m.Pedido_Numero
-    JOIN LOSGDS.Detalle_Pedido dp ON p.id_pedido = dp.id_det_pedido	
+    JOIN LOSGDS.Detalle_Pedido dp ON p.id_pedido = dp.det_ped_pedido	
     JOIN LOSGDS.Factura f
         ON f.fact_numero = m.Factura_Numero
         
