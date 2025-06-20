@@ -36,6 +36,8 @@ IF OBJECT_ID('LOSGDS.BI_Dim_Tiempo',       'U') IS NOT NULL DROP TABLE LOSGDS.BI
 IF OBJECT_ID('LOSGDS.BI_Dim_Ubicacion',       'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Ubicacion;
 IF OBJECT_ID('LOSGDS.BI_Dim_Rango_Etario_Cliente', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Rango_Etario_Cliente;
 IF OBJECT_ID('LOSGDS.BI_Dim_Modelo_Sillon', 'U') IS NOT NULL DROP TABLE LOSGDS.BI_Dim_Modelo_Sillon;
+
+IF OBJECT_ID('LOSGDS.BI_Hechos_Envios') IS NOT NULL DROP TABLE LOSGDS.BI_Hechos_Envios;
 GO
 
 /****************************************
@@ -99,7 +101,6 @@ CREATE TABLE LOSGDS.BI_Dim_Turno_Ventas (
 );
 GO
 
-
 /****************************************
  3) CREATE TABLE Hechos
 ****************************************/
@@ -152,6 +153,17 @@ CREATE TABLE LOSGDS.BI_Hechos_Facturacion (
 );
 GO
 
+CREATE TABLE LOSGDS.BI_Hechos_Envios(
+	id_tiempo BIGINT,
+	id_ubicacion BIGINT,
+	costo_envio_promedio DECIMAL(18,2),
+	cumplidos_en_fecha INT,
+	cantidad_envios INT,
+	CONSTRAINT PK_HechosEnvios PRIMARY KEY (id_tiempo, id_ubicacion),
+	CONSTRAINT FK_HechosEnvios_Tiempo FOREIGN KEY (id_tiempo) REFERENCES LOSGDS.BI_Dim_Tiempo(id_tiempo),
+	CONSTRAINT FK_HechosEnvios_Ubicacion FOREIGN KEY (id_ubicacion) REFERENCES LOSGDS.BI_Dim_Ubicacion(id_ubicacion)
+);
+GO
 
 /****************************************
  4) CREATE PROCEDURES (migraciones dimensiones)
@@ -185,7 +197,6 @@ INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provinci
     JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
 
     UNION
-
     SELECT DISTINCT 
         pr.id_provincia,
         l.id_localidad,
@@ -197,7 +208,6 @@ INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provinci
     JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
 
     UNION
-
     SELECT DISTINCT 
         pr.id_provincia,
         l.id_localidad,
@@ -207,6 +217,19 @@ INSERT INTO LOSGDS.BI_Dim_Ubicacion (id_provincia, id_localidad, nombre_provinci
     JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
     JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
     JOIN LOSGDS.Provincia pr ON pr.id_provincia = l.localidad_provincia
+
+	UNION
+    SELECT DISTINCT 
+        prov.id_provincia,
+        l.id_localidad,
+        prov.nombre,
+        l.nombre
+    FROM  LOSGDS.Envio e
+    JOIN LOSGDS.Factura f ON f.id_factura = e.envio_factura
+    JOIN LOSGDS.Cliente c ON c.id_cliente = f.fact_cliente
+    JOIN LOSGDS.Direccion d ON d.id_direccion = c.cliente_direccion
+    JOIN LOSGDS.Localidad l ON l.id_localidad = d.direccion_localidad
+    JOIN LOSGDS.Provincia prov ON prov.id_provincia = l.localidad_provincia
 END
 GO
 
@@ -226,7 +249,7 @@ BEGIN
 		(50,null)
 	COMMIT TRANSACTION;
 END
-GO
+GO	
 
 -- 4.4 Migrar Dim_Tiempo
 CREATE PROCEDURE LOSGDS.MigrarDimTiempo
@@ -234,24 +257,53 @@ AS
 BEGIN
     INSERT INTO LOSGDS.BI_Dim_Tiempo (anio, cuatrimestre, mes)
     SELECT DISTINCT 
-        YEAR(fecha),
+        YEAR(f.fecha),
         CASE 
-            WHEN MONTH(fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
-            WHEN MONTH(fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+            WHEN MONTH(f.fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(f.fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
             ELSE 'Tercer Cuatrimestre'
         END,
-        MONTH(fecha)
-    FROM (
-        SELECT fecha FROM LOSGDS.Factura
-        UNION
-        SELECT fecha FROM LOSGDS.Compra
-        UNION
-        SELECT fecha FROM LOSGDS.Pedido
-        UNION
-        SELECT fecha_programada FROM LOSGDS.Envio
-    ) AS fechas
+        MONTH(f.fecha)
+    FROM LOSGDS.Factura f
+
+    UNION
+
+    SELECT DISTINCT 
+        YEAR(c.fecha),
+        CASE 
+            WHEN MONTH(c.fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(c.fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+            ELSE 'Tercer Cuatrimestre'
+        END,
+        MONTH(c.fecha)
+    FROM LOSGDS.Compra c
+
+    UNION
+
+    SELECT DISTINCT 
+        YEAR(p.fecha),
+        CASE 
+            WHEN MONTH(p.fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(p.fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+            ELSE 'Tercer Cuatrimestre'
+        END,
+        MONTH(p.fecha)
+    FROM LOSGDS.Pedido p
+
+    UNION
+
+    SELECT DISTINCT 
+        YEAR(e.fecha),
+        CASE 
+            WHEN MONTH(e.fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(e.fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+            ELSE 'Tercer Cuatrimestre'
+        END,
+        MONTH(e.fecha)
+    FROM LOSGDS.Envio e
 END
 GO
+
 
 -- 4.5 Migrar Dim_Modelo_Sillon
 CREATE PROCEDURE LOSGDS.MigrarDimModeloSillon
@@ -389,6 +441,52 @@ BEGIN
         dtv.id_turno_ventas;
 END;
 GO
+-- 5.3 Migrar Hechos_Envios
+CREATE PROCEDURE LOSGDS.MigrarHechosEnvios
+AS
+BEGIN
+
+    INSERT INTO LOSGDS.BI_Hechos_Envios (id_tiempo,id_ubicacion,costo_envio_promedio,cumplidos_en_fecha,cantidad_envios)
+    SELECT  
+	dt.id_tiempo, 
+	du.id_ubicacion,
+	AVG(e.total),
+	SUM( CASE 
+			WHEN e.fecha_programada = e.fecha THEN 1
+			ELSE 0
+		 END
+	),
+	COUNT(*) AS cantidad_envios
+    FROM  LOSGDS.Envio e
+	INNER JOIN LOSGDS.BI_Dim_Tiempo dt
+	ON dt.anio = YEAR(e.fecha)
+	AND dt.mes = MONTH(e.fecha)
+	AND dt.cuatrimestre = 
+		CASE 
+            WHEN MONTH(e.fecha) BETWEEN 1 AND 4 THEN 'Primer Cuatrimestre'
+            WHEN MONTH(e.fecha) BETWEEN 5 AND 8 THEN 'Segundo Cuatrimestre'
+			else 'Tercer Cuatrimestre'
+        END
+
+
+	INNER JOIN LOSGDS.Factura f
+	ON f.id_factura = e.envio_factura
+	INNER JOIN LOSGDS.Cliente c
+	ON c.id_cliente = f.fact_cliente
+	INNER JOIN LOSGDS.Direccion d
+	ON d.id_direccion = c.cliente_direccion
+	INNER JOIN LOSGDS.Localidad l
+	ON l.id_localidad = d.direccion_localidad
+	INNER JOIN LOSGDS.Provincia prov
+	ON prov.id_provincia = l.localidad_provincia
+	INNER JOIN LOSGDS.BI_Dim_Ubicacion du
+	ON du.id_localidad = l.id_localidad
+	AND du.id_provincia = prov.id_provincia
+	GROUP BY
+	dt.id_tiempo, du.id_ubicacion
+	ORDER BY cantidad_envios
+END
+GO
 
 /****************************************
  6) EJECUCIÓN de migraciones
@@ -405,6 +503,7 @@ BEGIN TRANSACTION
 
 	EXEC LOSGDS.MigrarHechosFacturacion;
     EXEC LOSGDS.MigrarHechosPedidos;
+	EXEC LOSGDS.MigrarHechosEnvios;
 COMMIT TRANSACTION
 GO
 
@@ -515,6 +614,28 @@ GROUP BY t.anio, t.cuatrimestre, s.nro_sucursal;
 GO
 
 
+-- 9. Porcentaje de cumplimiento de envíos 
+CREATE VIEW LOSGDS.BI_Vista_CumplimientoEnvios AS
+	SELECT
+		dt.mes AS mes,
+		SUM(cumplidos_en_fecha)*100/SUM(cantidad_envios)  AS porcentaje_cumplimiento
+	FROM LOSGDS.BI_Hechos_Envios he
+	INNER JOIN LOSGDS.BI_Dim_Tiempo dt
+	ON dt.id_tiempo = he.id_tiempo
+	GROUP BY dt.mes 
+GO
+-- 10. Localidades que pagan mayor costo de envío
+CREATE VIEW LOSGDS.BI_Vista_LocalidadesMayorCostoEnvio AS
+	SELECT TOP 3
+		du.nombre_localidad AS localidad,
+		AVG(he.costo_envio_promedio) AS promedio_costo_envio
+	FROM LOSGDS.BI_Hechos_Envios he
+	INNER JOIN LOSGDS.BI_Dim_Ubicacion du
+		ON du.id_ubicacion = he.id_ubicacion
+	GROUP BY du.nombre_localidad
+	ORDER BY AVG(he.costo_envio_promedio) DESC
+GO
+
 /****************************************
  8) DROP PROCEDURES (limpieza final)
 ****************************************/
@@ -530,6 +651,7 @@ DROP PROCEDURE LOSGDS.MigrarDimTurnoVentas;
 
 DROP PROCEDURE LOSGDS.MigrarHechosFacturacion;
 DROP PROCEDURE LOSGDS.MigrarHechosPedidos;
+DROP PROCEDURE LOSGDS.MigrarHechosEnvios;
 GO
 
 
