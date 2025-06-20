@@ -147,3 +147,42 @@ COMMIT TRANSACTION
 DROP PROCEDURE LOSGDS.MigrarDimTiempo
 DROP PROCEDURE LOSGDS.MigrarDimUbicacion
 DROP PROCEDURE LOSGDS.MigrarHechosEnvios
+
+-- 9. Porcentaje de cumplimiento de envíos  -> Interpreto que piden por mes y no importa el año
+CREATE VIEW LOSGDS.BI_Vista_CumplimientoEnvios AS
+	SELECT
+		dt.mes AS mes,
+		SUM(cumplidos_en_fecha)*100/SUM(cantidad_envios)  AS porcentaje_cumplimiento
+	FROM LOSGDS.BI_Hechos_Envios he
+	INNER JOIN LOSGDS.BI_Dim_Tiempo dt
+	ON dt.id_tiempo = he.id_tiempo
+	GROUP BY dt.mes 
+GO
+
+/*
+Porcentaje de cumplimiento de envíos en los tiempos 
+programados por mes. Se calcula teniendo en cuenta los
+envíos cumplidos en fecha sobre el total de envíos para
+el período.
+
+cumplidos * 100 / total
+*/
+-- 10. Localidades que pagan mayor costo de envío
+CREATE VIEW LOSGDS.BI_Vista_LocalidadesMayorCostoEnvio AS
+	SELECT TOP 3
+		du.nombre_localidad AS localidad,
+		AVG(he.costo_envio_promedio) AS promedio_costo_envio
+	FROM LOSGDS.BI_Hechos_Envios he
+	INNER JOIN LOSGDS.BI_Dim_Ubicacion du
+		ON du.id_ubicacion = he.id_ubicacion
+	GROUP BY du.nombre_localidad
+	ORDER BY AVG(he.costo_envio_promedio) DESC
+GO
+
+/*
+Localidades que pagan mayor costo de envío. Las 3 localidades
+(tomando la localidad del cliente) con mayor promedio de costo
+de envío (total).
+
+ordenar de mayor a menor y hacer solo un select TOP 3
+*/
