@@ -539,7 +539,7 @@ END
 GO
 
 
--- 5.3) Migrar hechos compras
+-- 5.4 Migrar hechos compras
 
 CREATE PROCEDURE LOSGDS.MigrarHechosCompras
 AS
@@ -592,15 +592,29 @@ GO
 
 -- 1. Ganancias (Por mes por sucursal) [Total de ingresos (facturación) - total de egresos (compras)]
 CREATE VIEW LOSGDS.BI_Vista_Ganancias AS
-	SELECT
-	t.mes,
-	s.id_sucursal,
-	SUM(hf.total) - SUM(hc.importe_total) AS ganancias_mesuales
-	FROM LOSGDS.BI_Hechos_Compras hc 
-	JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = hc.id_tiempo
-	JOIN LOSGDS.BI_Dim_Sucursal s ON s.id_sucursal = hc.id_sucursal
-	JOIN LOSGDS.BI_Hechos_Facturacion hf ON hf.id_tiempo = t.id_tiempo AND hf.id_sucursal = s.id_sucursal
-	GROUP BY t.mes, s.id_sucursal
+SELECT 
+    COALESCE(f.mes, c.mes) AS mes,
+    COALESCE(f.id_sucursal, c.id_sucursal) AS id_sucursal,
+    COALESCE(f.total_factura, 0) - COALESCE(c.total_compra, 0) AS ganancia_mensual
+FROM (
+    SELECT
+        t.mes,
+        f.id_sucursal,
+        SUM(f.total) AS total_factura
+    FROM LOSGDS.BI_Hechos_Facturacion f
+    JOIN LOSGDS.BI_Dim_Tiempo t ON f.id_tiempo = t.id_tiempo
+    GROUP BY t.mes, f.id_sucursal
+) f
+FULL OUTER JOIN (
+    SELECT
+        t.mes,
+        c.id_sucursal,
+        SUM(c.importe_total) AS total_compra
+    FROM LOSGDS.BI_Hechos_Compras c
+    JOIN LOSGDS.BI_Dim_Tiempo t ON c.id_tiempo = t.id_tiempo
+    GROUP BY t.mes, c.id_sucursal
+) c
+ON f.mes = c.mes AND f.id_sucursal = c.id_sucursal
 GO
 
 -- 2. Factura Promedio Mensual (Toma los datos de un cuatrimestre)
