@@ -594,10 +594,10 @@ sucursal y cuatrimestre. */
 CREATE VIEW LOSGDS.BI_Vista_ComprasTotal AS
 	SELECT 
 		t.cuatrimestre AS cuatrimestre,
-		t.anio AS anio
-		--tm.tipo_material AS tipoMaterial,
-		--s.nro_sucursal AS nroSucursal--,
-		--SUM(c.importe_total) AS importeTotal
+		t.anio AS anio,
+		tm.tipo_material AS tipoMaterial,
+		s.nro_sucursal AS nroSucursal,
+		SUM(c.importe_total) AS importeTotal
 	FROM LOSGDS.BI_Hechos_Compras c
 	JOIN LOSGDS.BI_Dim_Tiempo t ON t.id_tiempo = c.id_tiempo
 	JOIN LOSGDS.BI_Dim_TipoMaterial tm ON c.id_material = tm.id_material
