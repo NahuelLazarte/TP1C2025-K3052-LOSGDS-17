@@ -1,6 +1,6 @@
 <h1 align="center"> 🛋️ Sistema de Gestión y Análisis para una Fábrica de Sillones </h1>
 <p align="center"</p>
-<h2 align="center"> Trabajo Práctico - Gestión de Datos - UTN FRBA 2025 1C  </h2>
+<h2 align="center"> Trabajo Práctico - Bases de datos - UTN FRBA 2025 1C  </h2>
 
 
 ## 🎯 Objetivo del Proyecto
