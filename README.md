@@ -3,9 +3,9 @@
 <h2 align="center"> Trabajo Práctico - Bases de datos - UTN FRBA 2025 1C  </h2>
 
 
-## 🎯 Objetivo del Proyecto
+## 🎯 Proyecto
 
-El objetivo del proyecto es diseñar e implementar un sistema de gestión para una fábrica de sillones, migrando y reorganizando los datos existentes en un modelo de base de datos eficiente, y desarrollando un modelo de inteligencia de negocios que permita analizar la información y apoyar la toma de decisiones.
+Partiendo de un sistema de gestión para una fábrica de sillones existente, se diseñó nuevamente la base de datos para construir un nuevo modelo normalizado y escalable, sin datos redundantes ni inconsistencias. Se realizó la creación y migración de la base de datos nueva mediante la creación de scripts SQL, además se desarrolló un modelo de inteligencia de negocios que permita analizar la información y apoyar la toma de decisiones.
 
 ## 📄 Descripción General
 
